@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaView, StyleSheet, View } from "react-native";
+import { Platform, SafeAreaView, StyleSheet, View } from "react-native";
 import {
   useFonts,
   SpaceGrotesk_400Regular,
@@ -52,6 +52,7 @@ export default function App() {
   if (!fontsLoaded) return null;
 
   return (
+    <View style={styles.webBackdrop}>
     <SafeAreaView style={styles.container} onLayout={onLayout}>
       <View style={styles.content}>
         {s.screen === "login" && (
@@ -242,10 +243,22 @@ export default function App() {
       )}
       <StatusBar style="dark" />
     </SafeAreaView>
+    </View>
   );
 }
 
+const isWeb = Platform.OS === "web";
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
+  // On web (a desktop browser has no phone-width constraint) this centers
+  // the app in a phone-shaped column instead of letting it stretch full
+  // width. Has no effect on native iOS/Android, where the device itself
+  // already constrains the width.
+  webBackdrop: isWeb
+    ? { flex: 1, alignItems: "center", backgroundColor: "#E8E7E2", paddingVertical: 28 }
+    : { flex: 1 },
+  container: isWeb
+    ? { flex: 1, width: "100%", maxWidth: 430, backgroundColor: colors.background, borderRadius: 36, overflow: "hidden" }
+    : { flex: 1, backgroundColor: colors.background },
   content: { flex: 1 },
 });
