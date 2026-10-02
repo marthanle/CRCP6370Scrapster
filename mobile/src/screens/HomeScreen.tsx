@@ -13,12 +13,14 @@ interface Props {
   onScanReceipt: () => void;
   onScanPantry: () => void;
   onGoResult: () => void;
+  onImportRecipe: () => void;
 }
 
 const actionRows = [
   { key: "fridge", icon: "◉", title: "Photo of the fridge", subtitle: "Re-check what's actually left", primary: true },
   { key: "receipt", icon: "▤", title: "Scan a grocery receipt", subtitle: "Fastest after a shop — prices included" },
   { key: "pantry", icon: "▥", title: "Photo of the pantry shelf", subtitle: "Dry goods, cans, the back of the cupboard" },
+  { key: "import", icon: "↗", title: "Paste a recipe link", subtitle: "See what you have and what's left to buy" },
 ];
 
 export default function HomeScreen({
@@ -33,11 +35,13 @@ export default function HomeScreen({
   onScanReceipt,
   onScanPantry,
   onGoResult,
+  onImportRecipe,
 }: Props) {
   const handlers: Record<string, () => void> = {
     fridge: onScanFridge,
     receipt: onScanReceipt,
     pantry: onScanPantry,
+    import: onImportRecipe,
   };
 
   return (

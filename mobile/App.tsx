@@ -26,6 +26,8 @@ import RecipeScreen from "./src/screens/RecipeScreen";
 import CookedScreen from "./src/screens/CookedScreen";
 import TrackerScreen from "./src/screens/TrackerScreen";
 import CommunityScreen from "./src/screens/CommunityScreen";
+import ImportScreen from "./src/screens/ImportScreen";
+import ImportResultScreen from "./src/screens/ImportResultScreen";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -72,6 +74,7 @@ export default function App() {
             onScanReceipt={() => s.scan("receipt")}
             onScanPantry={() => s.scan("pantry")}
             onGoResult={() => s.go("result")}
+            onImportRecipe={() => s.go("import")}
           />
         )}
         {s.screen === "pantry" && (
@@ -129,6 +132,23 @@ export default function App() {
         {s.screen === "tracker" && <TrackerScreen />}
         {s.screen === "community" && (
           <CommunityScreen posts={s.communityPosts} onToggleLike={s.toggleLike} />
+        )}
+        {s.screen === "import" && (
+          <ImportScreen
+            loading={s.importLoading}
+            error={s.importError}
+            onSubmit={s.startImport}
+            onCancel={() => s.go("home")}
+          />
+        )}
+        {s.screen === "importResult" && s.importedRecipe && (
+          <ImportResultScreen
+            recipe={s.importedRecipe}
+            haveIngredients={s.haveIngredients}
+            needIngredients={s.needIngredients}
+            onBack={() => s.go("import")}
+            onDone={() => s.go("home")}
+          />
         )}
       </View>
 

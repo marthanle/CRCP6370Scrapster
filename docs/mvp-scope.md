@@ -22,6 +22,7 @@ First-apartment kitchen: stove + oven available (not dorm-only microwave/mini-fr
 8. Cooked celebration — savings delta, updated kitchen list, next-day leftover-chained meal suggestion
 9. Savings/waste-reduced tracker — lifetime total, monthly chart, category breakdown, personalized insight
 10. **Community feed (added post-design-port)** — a "Share to community" action on the Cooked screen posts your dish + savings to a feed others can browse and like. Lightweight by design: no profiles, follows, or comments — scoped down from a full social feed to fit the existing flow with minimal new surface area.
+11. **Recipe import (added post-design-port)** — paste a link to any recipe from "Add what you got" on Home; the backend fetches the page and extracts the ingredient list, then the app shows what you already have in your kitchen vs. what's still left to buy.
 
 ## Implementation status
 
@@ -41,6 +42,16 @@ First-apartment kitchen: stove + oven available (not dorm-only microwave/mini-fr
   (`mobile/src/data/communityFeed.ts`). There's no backend yet — posts don't persist past an app
   reload and aren't visible to other real users. Needs a shared backend store before it's a real
   multi-user feature.
+- **Recipe import is the first real (non-mocked) AI feature wired end-to-end in the mobile app.**
+  `backend/src/recipeImport.ts` uses Claude's `web_fetch` tool (`claude-opus-5`) to actually fetch
+  the pasted URL and extract a structured ingredient list — not canned data. The mobile app calls
+  it via `mobile/src/api/client.ts` → `POST /api/import-recipe`, then matches the result against
+  the local pantry client-side (simple case-insensitive substring match in
+  `useScrapsterState.ts`). Requires `ANTHROPIC_API_KEY` set in `backend/.env` and the backend
+  running (`cd backend && npm run dev`) to actually work — otherwise the mobile app shows a
+  friendly "can't reach the server" error. The pantry-matching heuristic is intentionally naive
+  (no synonym/unit handling) and will misfire on ingredient names that are phrased very
+  differently than what's in the kitchen list.
 
 ## Tech stack
 

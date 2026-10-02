@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { analyzeIngredients } from "./claude.js";
+import { importRecipeFromUrl } from "./recipeImport.js";
 
 const SAMPLE_INPUTS = [
   {
@@ -13,9 +14,11 @@ const SAMPLE_INPUTS = [
   },
 ];
 
-async function main() {
+const SAMPLE_RECIPE_URL = "https://www.bbcgoodfood.com/recipes/easy-pancakes";
+
+async function runAnalyzeSamples() {
   for (const sample of SAMPLE_INPUTS) {
-    console.log(`\n=== ${sample.label} ===`);
+    console.log(`\n=== analyze: ${sample.label} ===`);
     console.log(`Input: ${sample.ingredientList}`);
     try {
       const result = await analyzeIngredients({ ingredientList: sample.ingredientList });
@@ -32,6 +35,26 @@ async function main() {
       process.exitCode = 1;
     }
   }
+}
+
+async function runImportSample() {
+  console.log(`\n=== import-recipe: ${SAMPLE_RECIPE_URL} ===`);
+  try {
+    const result = await importRecipeFromUrl(SAMPLE_RECIPE_URL);
+    console.log(`Title: ${result.title}${result.servings ? ` (serves ${result.servings})` : ""}`);
+    console.log("Ingredients:");
+    for (const ing of result.ingredients) {
+      console.log(`  ${ing.quantity ? `${ing.quantity} ` : ""}${ing.name}`);
+    }
+  } catch (err) {
+    console.error("FAILED:", err instanceof Error ? err.message : err);
+    process.exitCode = 1;
+  }
+}
+
+async function main() {
+  await runAnalyzeSamples();
+  await runImportSample();
 }
 
 main();

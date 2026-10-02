@@ -1,4 +1,4 @@
-import { AnalyzeResponse } from "../types";
+import { AnalyzeResponse, ImportedRecipe } from "../types";
 
 // Point this at your local backend during development (see backend/README.md),
 // e.g. http://192.168.1.x:3000 — localhost won't resolve from a physical device/simulator.
@@ -18,6 +18,21 @@ export async function analyzeIngredients(input: {
   if (!response.ok) {
     const text = await response.text();
     throw new Error(`Analyze request failed (${response.status}): ${text}`);
+  }
+
+  return response.json();
+}
+
+export async function importRecipe(url: string): Promise<ImportedRecipe> {
+  const response = await fetch(`${API_BASE_URL}/api/import-recipe`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ url }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`Import request failed (${response.status}): ${text}`);
   }
 
   return response.json();

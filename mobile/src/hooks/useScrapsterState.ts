@@ -3,7 +3,16 @@ import { colors } from "../theme";
 import { SCAN_SOURCES } from "../data/scanSources";
 import { SEED_COMMUNITY_POSTS } from "../data/communityFeed";
 import { DEMO_RECIPE } from "../data/demoRecipe";
-import { CommunityPost, PantryItem, PendingAction, Screen, ScanSourceKey } from "../types/pantry";
+import { importRecipe } from "../api/client";
+import { ImportedRecipe } from "../types";
+import {
+  CommunityPost,
+  MatchedIngredient,
+  PantryItem,
+  PendingAction,
+  Screen,
+  ScanSourceKey,
+} from "../types/pantry";
 
 const INITIAL_PANTRY: PantryItem[] = [
   { id: 1, name: "Baby spinach", qty: "half bag", days: 0, src: "Fridge photo · Sun" },
@@ -59,6 +68,9 @@ export function useScrapsterState() {
   const [pantry, setPantry] = useState<PantryItem[]>(INITIAL_PANTRY);
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(SEED_COMMUNITY_POSTS);
   const [hasSharedCurrent, setHasSharedCurrent] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+  const [importedRecipe, setImportedRecipe] = useState<ImportedRecipe | null>(null);
   const nextIdRef = useRef(7);
   const nextCommunityIdRef = useRef(
     Math.max(...SEED_COMMUNITY_POSTS.map((p) => p.id)) + 1,
@@ -180,6 +192,30 @@ export function useScrapsterState() {
     );
   }, []);
 
+  const startImport = useCallback(async (url: string) => {
+    setImportError(null);
+    setImportLoading(true);
+    setScreen("import");
+    try {
+      const result = await importRecipe(url);
+      setImportedRecipe(result);
+      setScreen("importResult");
+    } catch (err) {
+      const isNetworkError =
+        err instanceof TypeError &&
+        /fetch|network/i.test(err.message);
+      setImportError(
+        isNetworkError
+          ? "Can't reach the Scrapster server. Make sure the backend is running."
+          : err instanceof Error
+            ? err.message
+            : "Couldn't import that recipe. Try a different link.",
+      );
+    } finally {
+      setImportLoading(false);
+    }
+  }, []);
+
   const sortedPantry = useMemo(
     () => [...pantry].sort((a, b) => a.days - b.days),
     [pantry],
@@ -243,8 +279,34 @@ export function useScrapsterState() {
     }).length;
   }, [activeSourceData, pantry, pendingActions]);
 
+  const matchedIngredients: MatchedIngredient[] = useMemo(() => {
+    if (!importedRecipe) return [];
+    return importedRecipe.ingredients.map((ing) => {
+      const needle = ing.name.toLowerCase().trim();
+      const hit = pantry.find((p) => {
+        const hay = p.name.toLowerCase().trim();
+        return hay.includes(needle) || needle.includes(hay);
+      });
+      return {
+        name: ing.name,
+        quantity: ing.quantity,
+        have: !!hit,
+        matchedPantryName: hit?.name,
+      };
+    });
+  }, [importedRecipe, pantry]);
+
+  const haveIngredients = useMemo(
+    () => matchedIngredients.filter((m) => m.have),
+    [matchedIngredients],
+  );
+  const needIngredients = useMemo(
+    () => matchedIngredients.filter((m) => !m.have),
+    [matchedIngredients],
+  );
+
   const activeTab = TAB_SCREEN[screen];
-  const showTabs = !["login", "diet", "scanning", "cooked"].includes(screen);
+  const showTabs = !["login", "diet", "scanning", "cooked", "import"].includes(screen);
 
   const urgentNames = urgentItems
     .slice(0, 2)
@@ -288,5 +350,11 @@ export function useScrapsterState() {
     toggleLike,
     shareToCommunity,
     hasSharedCurrent,
+    startImport,
+    importLoading,
+    importError,
+    importedRecipe,
+    haveIngredients,
+    needIngredients,
   };
 }

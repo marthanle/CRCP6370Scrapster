@@ -38,6 +38,13 @@ export interface CommunityPost {
   isYou?: boolean;
 }
 
+export interface MatchedIngredient {
+  name: string;
+  quantity?: string;
+  have: boolean;
+  matchedPantryName?: string;
+}
+
 export type Screen =
   | "login"
   | "diet"
@@ -50,4 +57,6 @@ export type Screen =
   | "recipe"
   | "cooked"
   | "tracker"
-  | "community";
+  | "community"
+  | "import"
+  | "importResult";

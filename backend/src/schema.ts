@@ -18,3 +18,16 @@ export const AnalyzeResponseSchema = z.object({
 });
 
 export type AnalyzeResponse = z.infer<typeof AnalyzeResponseSchema>;
+
+export const ImportedRecipeSchema = z.object({
+  title: z.string(),
+  servings: z.number().int().positive().optional(),
+  ingredients: z.array(
+    z.object({
+      name: z.string(),
+      quantity: z.string().optional(),
+    }),
+  ),
+});
+
+export type ImportedRecipe = z.infer<typeof ImportedRecipeSchema>;
