@@ -28,6 +28,10 @@ import TrackerScreen from "./src/screens/TrackerScreen";
 import CommunityScreen from "./src/screens/CommunityScreen";
 import ImportScreen from "./src/screens/ImportScreen";
 import ImportResultScreen from "./src/screens/ImportResultScreen";
+import SettingsScreen from "./src/screens/SettingsScreen";
+import PostDetailScreen from "./src/screens/PostDetailScreen";
+import ComposeScreen from "./src/screens/ComposeScreen";
+import CookbookScreen from "./src/screens/CookbookScreen";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -65,16 +69,29 @@ export default function App() {
           <HomeScreen
             pantryCount={s.pantryCount}
             pantrySummary={s.pantrySummary}
+            cookbookSummary={s.cookbookSummary}
             hasUrgent={s.hasUrgent}
             urgentBadge={s.urgentBadge}
             urgentLine={s.urgentLine}
             onGoTracker={() => s.go("tracker")}
             onGoPantry={() => s.go("pantry")}
+            onGoCookbook={() => s.go("cookbook")}
+            onGoSettings={() => s.go("settings")}
             onScanFridge={() => s.scan("fridge")}
             onScanReceipt={() => s.scan("receipt")}
             onScanPantry={() => s.scan("pantry")}
             onGoResult={() => s.go("result")}
             onImportRecipe={() => s.go("import")}
+          />
+        )}
+        {s.screen === "settings" && (
+          <SettingsScreen
+            dietSummary={s.dietSummary}
+            pantryCount={s.pantryCount}
+            onBack={() => s.go("home")}
+            onGoDiet={() => s.go("diet")}
+            onGoPantry={() => s.go("pantry")}
+            onLogOut={() => s.go("login")}
           />
         )}
         {s.screen === "pantry" && (
@@ -131,7 +148,48 @@ export default function App() {
         )}
         {s.screen === "tracker" && <TrackerScreen />}
         {s.screen === "community" && (
-          <CommunityScreen posts={s.communityPosts} onToggleLike={s.toggleLike} />
+          <CommunityScreen
+            posts={s.communityPosts}
+            hasRecipeOnly={s.feedHasRecipeOnly}
+            onToggleHasRecipe={s.toggleFeedHasRecipeOnly}
+            sortMenuOpen={s.sortMenuOpen}
+            onToggleSortMenu={s.toggleSortMenu}
+            sortOptions={s.sortOptions}
+            currentSortLabel={s.currentSortLabel}
+            onCompose={s.openCompose}
+          />
+        )}
+        {s.screen === "post" && s.selectedPostDetail && (
+          <PostDetailScreen
+            post={s.selectedPostDetail.post}
+            initial={s.selectedPostDetail.initial}
+            avatarMine={s.selectedPostDetail.avatarMine}
+            authorShort={s.selectedPostDetail.authorShort}
+            savedLabel={s.selectedPostDetail.savedLabel}
+            hasRecipe={s.selectedPostDetail.hasRecipe}
+            ingredients={s.selectedPostDetail.ingredients}
+            matchLine={s.selectedPostDetail.matchLine}
+            isSaved={s.selectedPostDetail.isSaved}
+            toggleSave={s.selectedPostDetail.toggleSave}
+            toggleLike={s.selectedPostDetail.toggleLike}
+            commentDraft={s.commentDraft}
+            onCommentDraftChange={s.setCommentDraft}
+            onSendComment={s.sendComment}
+            onBack={() => s.go("community")}
+          />
+        )}
+        {s.screen === "compose" && (
+          <ComposeScreen
+            dish={s.composeDish}
+            onDishChange={s.setComposeDish}
+            caption={s.composeCaption}
+            onCaptionChange={s.setComposeCaption}
+            pickRows={s.composePickRows}
+            savedPreview={s.composeSavedPreview}
+            canSubmit={s.canSubmitPost}
+            onSubmit={s.submitPost}
+            onCancel={() => s.go("community")}
+          />
         )}
         {s.screen === "import" && (
           <ImportScreen
@@ -141,13 +199,33 @@ export default function App() {
             onCancel={() => s.go("home")}
           />
         )}
-        {s.screen === "importResult" && s.importedRecipe && (
+        {s.screen === "importResult" && s.openedRecipe && (
           <ImportResultScreen
-            recipe={s.importedRecipe}
+            recipe={{
+              title: s.openedRecipe.title,
+              servings: s.openedRecipe.servings,
+              source: s.openedRecipe.source,
+            }}
             haveIngredients={s.haveIngredients}
             needIngredients={s.needIngredients}
-            onBack={() => s.go("import")}
+            backLabel={s.importFrom === "cookbook" ? "← Saved recipes" : "← Import another"}
+            canSave={s.canSaveOpenedRecipe}
+            isSaved={s.isOpenedRecipeSaved}
+            showSeeAllSaved={s.isOpenedRecipeSaved && s.importFrom === "import"}
+            onBack={() => (s.importFrom === "cookbook" ? s.go("cookbook") : s.go("import"))}
+            onToggleSave={s.toggleSaveOpenedRecipe}
+            onSeeAllSaved={() => s.go("cookbook")}
             onDone={() => s.go("home")}
+          />
+        )}
+        {s.screen === "cookbook" && (
+          <CookbookScreen
+            rows={s.cookbookRows}
+            filter={s.cookbookFilter}
+            onSetFilter={s.setCookbookFilter}
+            onBack={() => s.go("home")}
+            onImportRecipe={() => s.go("import")}
+            onBrowseFeed={() => s.go("community")}
           />
         )}
       </View>

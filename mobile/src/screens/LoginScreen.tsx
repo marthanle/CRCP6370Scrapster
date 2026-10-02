@@ -13,14 +13,14 @@ export default function LoginScreen({ onLogIn, onCreateAccount }: Props) {
       <View style={styles.logo}>
         <Text style={styles.logoText}>S</Text>
       </View>
-      <Text style={styles.title}>Welcome back,{"\n"}Mara</Text>
+      <Text style={styles.title}>Cook what you{"\n"}already have</Text>
       <Text style={styles.subtitle}>
-        You've kept $32.10 out of the bin this month. Let's keep it going.
+        Scrapster turns the odds and ends in your fridge into one actual dinner.
       </Text>
 
       <Card style={styles.field}>
         <Text style={styles.fieldLabel}>Email</Text>
-        <Text style={styles.fieldValue}>mara@school.edu</Text>
+        <Text style={styles.fieldValue}>martha@smu.edu</Text>
       </Card>
       <Card style={[styles.field, { marginBottom: 16 }]}>
         <Text style={styles.fieldLabel}>Password</Text>

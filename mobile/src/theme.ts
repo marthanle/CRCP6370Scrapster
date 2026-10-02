@@ -35,6 +35,12 @@ export const colors = {
   neutralChipText: "#8A9095",
   skeleton: "#DDE2DC",
   skeletonAlt: "#D5DBD4",
+  skeletonDish: "#E4E9E3",
+  skeletonDishAlt: "#DDE3DC",
+
+  dash: "rgba(20,23,26,0.20)",
+  heartActive: "#D7263D",
+  tabInactive: "#9AA0A2",
 } as const;
 
 export const font = {

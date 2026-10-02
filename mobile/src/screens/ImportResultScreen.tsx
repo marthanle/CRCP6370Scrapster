@@ -1,14 +1,26 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { PrimaryButton, SectionLabel, TextButton } from "../components/ui";
 import { colors, font, radius } from "../theme";
-import { ImportedRecipe } from "../types";
+import { BookmarkIcon } from "../components/icons";
 import { MatchedIngredient } from "../types/pantry";
 
+interface OpenedRecipe {
+  title: string;
+  servings?: number;
+  source?: string;
+}
+
 interface Props {
-  recipe: ImportedRecipe;
+  recipe: OpenedRecipe;
   haveIngredients: MatchedIngredient[];
   needIngredients: MatchedIngredient[];
+  backLabel: string;
+  canSave: boolean;
+  isSaved: boolean;
+  showSeeAllSaved: boolean;
   onBack: () => void;
+  onToggleSave: () => void;
+  onSeeAllSaved: () => void;
   onDone: () => void;
 }
 
@@ -35,16 +47,25 @@ export default function ImportResultScreen({
   recipe,
   haveIngredients,
   needIngredients,
+  backLabel,
+  canSave,
+  isSaved,
+  showSeeAllSaved,
   onBack,
+  onToggleSave,
+  onSeeAllSaved,
   onDone,
 }: Props) {
+  const isEmpty = haveIngredients.length === 0 && needIngredients.length === 0;
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <TextButton label="← Import another" onPress={onBack} />
+      <TextButton label={backLabel} onPress={onBack} />
+      {recipe.source && <Text style={styles.sourceLabel}>{recipe.source}</Text>}
       <Text style={styles.title}>{recipe.title}</Text>
       {recipe.servings && <Text style={styles.servings}>Serves {recipe.servings}</Text>}
 
-      {recipe.ingredients.length === 0 ? (
+      {isEmpty ? (
         <View style={styles.emptyNotice}>
           <Text style={styles.emptyNoticeText}>
             I couldn't find an ingredient list on that page. Try a different link.
@@ -84,6 +105,24 @@ export default function ImportResultScreen({
         </>
       )}
 
+      {canSave && (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={onToggleSave}
+          style={[styles.saveButton, { backgroundColor: isSaved ? colors.primary : colors.card }]}
+        >
+          <BookmarkIcon color={isSaved ? colors.onPrimary : colors.primary} size={17} filled={isSaved} />
+          <Text style={[styles.saveButtonText, { color: isSaved ? colors.onPrimary : colors.primary }]}>
+            {isSaved ? "Saved to your recipes" : "Save recipe"}
+          </Text>
+        </TouchableOpacity>
+      )}
+      {showSeeAllSaved && (
+        <TouchableOpacity onPress={onSeeAllSaved} style={{ marginBottom: 14 }}>
+          <Text style={styles.seeAllLink}>See all saved recipes →</Text>
+        </TouchableOpacity>
+      )}
+
       <PrimaryButton label="Done" onPress={onDone} />
     </ScrollView>
   );
@@ -91,9 +130,12 @@ export default function ImportResultScreen({
 
 const styles = StyleSheet.create({
   container: { flexGrow: 1, backgroundColor: colors.background, padding: 20, paddingTop: 14 },
+  sourceLabel: {
+    fontFamily: font.medium, fontSize: 11, letterSpacing: 1.1, textTransform: "uppercase",
+    color: colors.textFaint, marginTop: 12, marginBottom: 6,
+  },
   title: {
     fontFamily: font.bold, fontSize: 24, lineHeight: 29, letterSpacing: -0.4, color: colors.text,
-    marginTop: 12,
   },
   servings: { fontFamily: font.regular, fontSize: 13, color: colors.textMuted, marginTop: 3, marginBottom: 18 },
   card: {
@@ -110,4 +152,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.md, padding: 15, marginBottom: 20,
   },
   emptyNoticeText: { fontFamily: font.regular, fontSize: 13.5, lineHeight: 20, color: colors.amberTextSoft },
+  saveButton: {
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+    borderWidth: 2, borderColor: colors.primary, borderRadius: radius.sm, paddingVertical: 14, marginBottom: 10,
+  },
+  saveButtonText: { fontFamily: font.bold, fontSize: 15 },
+  seeAllLink: { textAlign: "center", fontFamily: font.medium, fontSize: 13, color: colors.primary },
 });

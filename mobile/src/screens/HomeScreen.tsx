@@ -1,14 +1,18 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors, font, radius } from "../theme";
+import { BookmarkIcon } from "../components/icons";
 
 interface Props {
   pantryCount: number;
   pantrySummary: string;
+  cookbookSummary: string;
   hasUrgent: boolean;
   urgentBadge: string;
   urgentLine: string;
   onGoTracker: () => void;
   onGoPantry: () => void;
+  onGoCookbook: () => void;
+  onGoSettings: () => void;
   onScanFridge: () => void;
   onScanReceipt: () => void;
   onScanPantry: () => void;
@@ -26,11 +30,14 @@ const actionRows = [
 export default function HomeScreen({
   pantryCount,
   pantrySummary,
+  cookbookSummary,
   hasUrgent,
   urgentBadge,
   urgentLine,
   onGoTracker,
   onGoPantry,
+  onGoCookbook,
+  onGoSettings,
   onScanFridge,
   onScanReceipt,
   onScanPantry,
@@ -48,9 +55,9 @@ export default function HomeScreen({
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.topRow}>
         <Text style={styles.dateText}>Tuesday, 6:12pm</Text>
-        <View style={styles.avatar}>
+        <TouchableOpacity activeOpacity={0.7} style={styles.avatar} onPress={onGoSettings}>
           <Text style={styles.avatarText}>M</Text>
-        </View>
+        </TouchableOpacity>
       </View>
 
       <TouchableOpacity activeOpacity={0.85} style={styles.savedCard} onPress={onGoTracker}>
@@ -66,16 +73,28 @@ export default function HomeScreen({
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity activeOpacity={0.85} style={styles.kitchenRow} onPress={onGoPantry}>
-        <View style={styles.kitchenBadge}>
-          <Text style={styles.kitchenBadgeText}>{pantryCount}</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.kitchenTitle}>Your kitchen</Text>
-          <Text style={styles.kitchenSubtitle}>{pantrySummary}</Text>
-        </View>
-        <Text style={styles.chevron}>›</Text>
-      </TouchableOpacity>
+      <View style={styles.kitchenCard}>
+        <TouchableOpacity activeOpacity={0.7} style={[styles.kitchenRow, styles.kitchenRowDivider]} onPress={onGoPantry}>
+          <View style={styles.kitchenBadge}>
+            <Text style={styles.kitchenBadgeText}>{pantryCount}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.kitchenTitle}>Your kitchen</Text>
+            <Text style={styles.kitchenSubtitle}>{pantrySummary}</Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity activeOpacity={0.7} style={styles.kitchenRow} onPress={onGoCookbook}>
+          <View style={styles.bookmarkBadge}>
+            <BookmarkIcon color={colors.amberLabel} size={18} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.kitchenTitle}>Saved recipes</Text>
+            <Text style={styles.kitchenSubtitle}>{cookbookSummary}</Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+      </View>
 
       <Text style={styles.sectionTitle}>Add what you got</Text>
       <Text style={styles.sectionSubtitle}>
@@ -137,13 +156,18 @@ const styles = StyleSheet.create({
   savedItems: { fontFamily: font.medium, fontSize: 11.5, lineHeight: 15.5, color: colors.onPrimaryMuted, textAlign: "right" },
   savedBarRow: { flexDirection: "row", gap: 3 },
   savedBarSeg: { height: 5, borderRadius: 3 },
-  kitchenRow: {
-    backgroundColor: colors.card, borderRadius: radius.md, padding: 14,
-    flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 18,
+  kitchenCard: {
+    backgroundColor: colors.card, borderRadius: radius.md, paddingHorizontal: 14, marginBottom: 18,
     shadowColor: "#14171A", shadowOpacity: 0.07, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 1,
   },
+  kitchenRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12 },
+  kitchenRowDivider: { borderBottomWidth: 1, borderBottomColor: colors.divider },
   kitchenBadge: {
     width: 36, height: 36, borderRadius: 11, backgroundColor: colors.primaryTint,
+    alignItems: "center", justifyContent: "center",
+  },
+  bookmarkBadge: {
+    width: 36, height: 36, borderRadius: 11, backgroundColor: colors.keepBg,
     alignItems: "center", justifyContent: "center",
   },
   kitchenBadgeText: { fontFamily: font.bold, fontSize: 13.5, color: colors.primary },

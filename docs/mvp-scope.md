@@ -5,6 +5,13 @@
 > recipe result, budget mode, step-by-step recipe, cooked celebration, and the savings tracker.
 > We decided to match that design as real v1 scope rather than the narrower cut below, which is
 > kept for its rationale but is no longer the operative plan.
+>
+> **Second update:** a formal design-handoff bundle (`.dc.html` prototype + a detailed README with
+> exact design tokens, copy, and a data model — preserved in full at
+> [docs/design-handoff-scrapster.md](design-handoff-scrapster.md)) expanded scope further —
+> Settings, a much richer community feed (sort/filter, post detail with recipes + comments,
+> compose), and a Saved Recipes ("cookbook") screen. All of it is built; see the feature list and
+> implementation status below for what's real vs. mocked.
 
 ## Kitchen assumption
 
@@ -23,6 +30,11 @@ First-apartment kitchen: stove + oven available (not dorm-only microwave/mini-fr
 9. Savings/waste-reduced tracker — lifetime total, monthly chart, category breakdown, personalized insight
 10. **Community feed (added post-design-port)** — a "Share to community" action on the Cooked screen posts your dish + savings to a feed others can browse and like. Lightweight by design: no profiles, follows, or comments — scoped down from a full social feed to fit the existing flow with minimal new surface area.
 11. **Recipe import (added post-design-port)** — paste a link to any recipe from "Add what you got" on Home; the backend fetches the page and extracts the ingredient list, then the app shows what you already have in your kitchen vs. what's still left to buy.
+12. **Settings** — profile, diet & allergies (links back to onboarding), kitchen list, kitchen setup, Scrapster+ upsell, notifications toggle, email/password, and Log out. Reached by tapping the avatar on Home.
+13. **Community feed v2** — "Has recipe" filter and a 4-way sort popover (Best match / Newest / Most saved / Most liked), a "uses N things you have" match badge, and a compose-entry card at the top of the feed.
+14. **Post detail** — full post view: photo, caption, tags, like/comment/save actions, either a full recipe (ingredient match list + numbered steps) or a "didn't drop the recipe" note, and a comment thread with a composer.
+15. **Compose a post** — dish name, multi-select "what did you rescue" chips sourced from the kitchen list, optional caption, a live "+$X.XX saved" preview computed from the picked items, posts to the feed.
+16. **Saved recipes ("cookbook")** — recipes saved from an import result or a feed post, filterable (All / Ready-ish / From the feed), sorted by how much of each you can already make; reopens into the same result view used for a fresh import.
 
 ## Implementation status
 
@@ -38,10 +50,16 @@ First-apartment kitchen: stove + oven available (not dorm-only microwave/mini-fr
   `analyzeIngredients()` calls once a photo is taken).
 - **Login/auth, budget-mode pricing, and the savings tracker's historical data** are still
   UI-only/mocked — no real auth, grocery-price lookup, or persistent savings ledger exists yet.
-- **Community feed:** UI and interaction (share, like) are fully built and local-state only
-  (`mobile/src/data/communityFeed.ts`). There's no backend yet — posts don't persist past an app
-  reload and aren't visible to other real users. Needs a shared backend store before it's a real
-  multi-user feature.
+- **Community feed, post detail, compose, and saved recipes:** all fully built and interactive —
+  sort/filter, comments, likes, saving a recipe from a post or an import, the compose flow's live
+  savings preview — but entirely **local-state only** (`mobile/src/data/communityFeed.ts` seeds 3
+  posts from Priya/Devon/Mei with full captions/ingredients/steps/comments, matching the design
+  handoff verbatim). There's no backend — posts, comments, likes, and saved recipes don't persist
+  past an app reload and aren't visible to other real users. Needs a shared backend store (posts,
+  comments, likes, saved-recipe join table) before this is a real multi-user feature — the
+  suggested build order's step 7 flags this explicitly.
+- **Settings and Log out** are UI-only — Log out just navigates back to the login screen; there's
+  no real session/auth to tear down since there's no real auth yet either.
 - **Recipe import is the first real (non-mocked) AI feature wired end-to-end in the mobile app.**
   `backend/src/recipeImport.ts` uses Claude's `web_fetch` tool (`claude-opus-5`) to actually fetch
   the pasted URL and extract a structured ingredient list — not canned data. The mobile app calls
@@ -56,7 +74,9 @@ First-apartment kitchen: stove + oven available (not dorm-only microwave/mini-fr
 ## Tech stack
 
 - **Mobile app:** React Native + Expo, TypeScript, Space Grotesk (Google Fonts) to match the
-  design's typography.
+  design's typography, `react-native-svg` for the real stroked-line tab bar/UI icons (ported
+  directly from the design handoff's SVG paths rather than the placeholder glyphs the prototype
+  used).
 - **Backend:** Small Node/Express service. Holds the AI API key server-side (never embed API keys
   in the mobile client), handles:
   - Image parsing → ingredient list (vision model)

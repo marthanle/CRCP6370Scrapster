@@ -6,7 +6,7 @@ See [docs/product-brief.md](docs/product-brief.md) for the full product spec and
 
 ## Structure
 
-- `mobile/` — React Native (Expo) app. All 11 screens from the Claude Design prototype (login, diet/allergy onboarding, home, kitchen list, scan, confirm/dedupe, recipe result, budget mode, step-by-step recipe, cooked celebration, savings tracker), plus a community feed for sharing cooked dishes and a recipe-link importer.
+- `mobile/` — React Native (Expo) app covering the full design handoff: login, diet/allergy onboarding, home, settings, kitchen list, scan, confirm/dedupe, recipe result, budget mode, step-by-step recipe, cooked celebration, savings tracker, a recipe-link importer, saved recipes ("cookbook"), and a community feed (sort/filter, post detail with comments, compose).
 - `backend/` — Node/Express service that calls Claude for ingredient parsing (photo or list) + urgency ranking + recipe generation, and for fetching/parsing recipes from a pasted URL.
 
 ## Status
@@ -14,7 +14,8 @@ See [docs/product-brief.md](docs/product-brief.md) for the full product spec and
 - **Mobile UI:** fully built and matches the design, but the scan/cook flow runs on **mock data** — it uses canned sample datasets (`mobile/src/data/scanSources.ts`) and the recipe screens show a fixed demo dish (`mobile/src/data/demoRecipe.ts`), the same way the design prototype itself worked.
 - **Backend:** real Claude-based ingredient parsing + recipe generation is implemented (`backend/src/claude.ts`) but **not yet wired** into the mobile app's scan flow. Connecting the two — so a real photo produces a real AI-generated recipe — is the next step.
 - **Recipe import is already real, end-to-end:** paste a link on the Home screen and the backend actually fetches the page with Claude's web-fetch tool, extracts the ingredients, and the app shows what you have vs. still need to buy. Needs `ANTHROPIC_API_KEY` set and the backend running.
-- **Community feed:** share-a-dish + like interactions are fully built, but local-state only — no backend, so posts don't persist or sync across users yet.
+- **Community feed, post detail, compose, and saved recipes:** all fully built and interactive (sort/filter, comments, likes, saving recipes), but local-state only — no backend, so posts/comments/likes/saves don't persist or sync across users yet.
+- **Settings:** UI-only — Log out just returns to the login screen (no real auth session exists yet to tear down).
 
 See [docs/mvp-scope.md](docs/mvp-scope.md) for the full breakdown of what's real vs. mocked.
 
