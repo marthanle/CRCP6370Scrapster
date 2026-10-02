@@ -25,6 +25,7 @@ import BudgetScreen from "./src/screens/BudgetScreen";
 import RecipeScreen from "./src/screens/RecipeScreen";
 import CookedScreen from "./src/screens/CookedScreen";
 import TrackerScreen from "./src/screens/TrackerScreen";
+import CommunityScreen from "./src/screens/CommunityScreen";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -118,8 +119,17 @@ export default function App() {
             onMarkCooked={s.markCooked}
           />
         )}
-        {s.screen === "cooked" && <CookedScreen onBackHome={() => s.go("home")} />}
+        {s.screen === "cooked" && (
+          <CookedScreen
+            onBackHome={() => s.go("home")}
+            onShare={s.shareToCommunity}
+            hasShared={s.hasSharedCurrent}
+          />
+        )}
         {s.screen === "tracker" && <TrackerScreen />}
+        {s.screen === "community" && (
+          <CommunityScreen posts={s.communityPosts} onToggleLike={s.toggleLike} />
+        )}
       </View>
 
       {s.showTabs && (
@@ -129,6 +139,7 @@ export default function App() {
           onScan={() => s.scan("fridge")}
           onPantry={() => s.go("pantry")}
           onSaved={() => s.go("tracker")}
+          onCommunity={() => s.go("community")}
         />
       )}
       <StatusBar style="dark" />

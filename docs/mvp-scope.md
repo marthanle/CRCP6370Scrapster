@@ -21,6 +21,7 @@ First-apartment kitchen: stove + oven available (not dorm-only microwave/mini-fr
 7. Step-by-step recipe view with progress tracking
 8. Cooked celebration — savings delta, updated kitchen list, next-day leftover-chained meal suggestion
 9. Savings/waste-reduced tracker — lifetime total, monthly chart, category breakdown, personalized insight
+10. **Community feed (added post-design-port)** — a "Share to community" action on the Cooked screen posts your dish + savings to a feed others can browse and like. Lightweight by design: no profiles, follows, or comments — scoped down from a full social feed to fit the existing flow with minimal new surface area.
 
 ## Implementation status
 
@@ -36,6 +37,10 @@ First-apartment kitchen: stove + oven available (not dorm-only microwave/mini-fr
   `analyzeIngredients()` calls once a photo is taken).
 - **Login/auth, budget-mode pricing, and the savings tracker's historical data** are still
   UI-only/mocked — no real auth, grocery-price lookup, or persistent savings ledger exists yet.
+- **Community feed:** UI and interaction (share, like) are fully built and local-state only
+  (`mobile/src/data/communityFeed.ts`). There's no backend yet — posts don't persist past an app
+  reload and aren't visible to other real users. Needs a shared backend store before it's a real
+  multi-user feature.
 
 ## Tech stack
 

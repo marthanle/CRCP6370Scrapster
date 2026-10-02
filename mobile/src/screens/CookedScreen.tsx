@@ -1,13 +1,15 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { PrimaryButton, ProgressBar } from "../components/ui";
 import { colors, font, radius } from "../theme";
 import { DEMO_RECIPE } from "../data/demoRecipe";
 
 interface Props {
   onBackHome: () => void;
+  onShare: () => void;
+  hasShared: boolean;
 }
 
-export default function CookedScreen({ onBackHome }: Props) {
+export default function CookedScreen({ onBackHome, onShare, hasShared }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.container} bounces={false}>
       <View style={styles.top}>
@@ -57,6 +59,16 @@ export default function CookedScreen({ onBackHome }: Props) {
             <Text style={styles.mealMeta}>Meal chaining is part of Scrapster+</Text>
           </View>
         </View>
+
+        {hasShared ? (
+          <View style={styles.sharedRow}>
+            <Text style={styles.sharedRowText}>✓ Shared to the community feed</Text>
+          </View>
+        ) : (
+          <TouchableOpacity activeOpacity={0.8} style={styles.shareButton} onPress={onShare}>
+            <Text style={styles.shareButtonText}>Share to community</Text>
+          </TouchableOpacity>
+        )}
 
         <PrimaryButton label="Back home" onPress={onBackHome} />
       </View>
@@ -108,4 +120,11 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   upsellBadgeText: { fontFamily: font.bold, fontSize: 11.5, color: colors.amberLabel },
+  shareButton: {
+    borderWidth: 1, borderColor: colors.primary, borderRadius: radius.sm,
+    alignItems: "center", paddingVertical: 15, marginBottom: 10,
+  },
+  shareButtonText: { fontFamily: font.semibold, fontSize: 14.5, color: colors.primary },
+  sharedRow: { alignItems: "center", paddingVertical: 15, marginBottom: 10 },
+  sharedRowText: { fontFamily: font.medium, fontSize: 13.5, color: colors.primary },
 });

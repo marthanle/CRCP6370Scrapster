@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { colors } from "../theme";
 import { SCAN_SOURCES } from "../data/scanSources";
-import { PantryItem, PendingAction, Screen, ScanSourceKey } from "../types/pantry";
+import { SEED_COMMUNITY_POSTS } from "../data/communityFeed";
+import { DEMO_RECIPE } from "../data/demoRecipe";
+import { CommunityPost, PantryItem, PendingAction, Screen, ScanSourceKey } from "../types/pantry";
 
 const INITIAL_PANTRY: PantryItem[] = [
   { id: 1, name: "Baby spinach", qty: "half bag", days: 0, src: "Fridge photo · Sun" },
@@ -35,7 +37,7 @@ export function band(days: number) {
   return { bar: colors.primary, fg: colors.primary, word: "shelf-stable" };
 }
 
-const TAB_SCREEN: Partial<Record<Screen, "home" | "scan" | "pantry" | "saved">> = {
+const TAB_SCREEN: Partial<Record<Screen, "home" | "scan" | "pantry" | "saved" | "community">> = {
   home: "home",
   scanning: "scan",
   confirm: "scan",
@@ -45,6 +47,7 @@ const TAB_SCREEN: Partial<Record<Screen, "home" | "scan" | "pantry" | "saved">> 
   recipe: "pantry",
   cooked: "pantry",
   tracker: "saved",
+  community: "community",
 };
 
 export function useScrapsterState() {
@@ -54,7 +57,12 @@ export function useScrapsterState() {
   const [source, setSource] = useState<ScanSourceKey>("fridge");
   const [pendingActions, setPendingActions] = useState<Record<number, PendingAction>>({});
   const [pantry, setPantry] = useState<PantryItem[]>(INITIAL_PANTRY);
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(SEED_COMMUNITY_POSTS);
+  const [hasSharedCurrent, setHasSharedCurrent] = useState(false);
   const nextIdRef = useRef(7);
+  const nextCommunityIdRef = useRef(
+    Math.max(...SEED_COMMUNITY_POSTS.map((p) => p.id)) + 1,
+  );
   const scanTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
@@ -142,8 +150,35 @@ export function useScrapsterState() {
     nextIdRef.current = id;
     setPantry(next);
     setDone({});
+    setHasSharedCurrent(false);
     setScreen("cooked");
   }, [pantry]);
+
+  const shareToCommunity = useCallback(() => {
+    setCommunityPosts((prev) => [
+      {
+        id: nextCommunityIdRef.current++,
+        author: "You",
+        avatarInitial: "M",
+        dishTitle: DEMO_RECIPE.title,
+        savings: DEMO_RECIPE.cookedSavings.replace("+", ""),
+        timeAgo: "just now",
+        likes: 0,
+        liked: false,
+        isYou: true,
+      },
+      ...prev,
+    ]);
+    setHasSharedCurrent(true);
+  }, []);
+
+  const toggleLike = useCallback((id: number) => {
+    setCommunityPosts((prev) =>
+      prev.map((p) =>
+        p.id === id ? { ...p, liked: !p.liked, likes: p.likes + (p.liked ? -1 : 1) } : p,
+      ),
+    );
+  }, []);
 
   const sortedPantry = useMemo(
     () => [...pantry].sort((a, b) => a.days - b.days),
@@ -249,5 +284,9 @@ export function useScrapsterState() {
     markCooked,
     activeTab,
     showTabs,
+    communityPosts,
+    toggleLike,
+    shareToCommunity,
+    hasSharedCurrent,
   };
 }

@@ -26,6 +26,18 @@ export interface ScanSourceData {
 
 export type PendingAction = "add" | "merge" | "keep" | "skip";
 
+export interface CommunityPost {
+  id: number;
+  author: string;
+  avatarInitial: string;
+  dishTitle: string;
+  savings: string;
+  timeAgo: string;
+  likes: number;
+  liked: boolean;
+  isYou?: boolean;
+}
+
 export type Screen =
   | "login"
   | "diet"
@@ -37,4 +49,5 @@ export type Screen =
   | "budget"
   | "recipe"
   | "cooked"
-  | "tracker";
+  | "tracker"
+  | "community";
