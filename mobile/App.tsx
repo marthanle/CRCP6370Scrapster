@@ -255,10 +255,13 @@ const styles = StyleSheet.create({
   // width. Has no effect on native iOS/Android, where the device itself
   // already constrains the width.
   webBackdrop: isWeb
-    ? { flex: 1, alignItems: "center", backgroundColor: "#E8E7E2", paddingVertical: 28 }
+    ? { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#E8E7E2", padding: 28 }
     : { flex: 1 },
+  // Fixed to a phone's aspect ratio (iPhone-ish 402x874, same as the design
+  // prototype's own device frame) instead of stretching to the browser's
+  // full viewport height, which read as an oddly elongated card.
   container: isWeb
-    ? { flex: 1, width: "100%", maxWidth: 430, backgroundColor: colors.background, borderRadius: 36, overflow: "hidden" }
+    ? { width: 402, height: 874, maxHeight: "100%", backgroundColor: colors.background, borderRadius: 36, overflow: "hidden" }
     : { flex: 1, backgroundColor: colors.background },
   content: { flex: 1 },
 });
