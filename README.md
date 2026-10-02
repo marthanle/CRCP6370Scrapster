@@ -2,7 +2,7 @@
 
 Turn what's already in your fridge/pantry into a meal before it goes to waste — snap a photo, scan a receipt, or type a list, and get one recipe built around your most urgent ingredients first. Tracks the money and time you save along the way.
 
-See [docs/product-brief.md](docs/product-brief.md) for the full product spec and [docs/mvp-scope.md](docs/mvp-scope.md) for current v1 scope and implementation status.
+See [docs/product-brief.md](docs/product-brief.md) for the full product spec, [docs/design-handoff-scrapster.md](docs/design-handoff-scrapster.md) for the exact design tokens/copy/data model the UI is built to, and [docs/mvp-scope.md](docs/mvp-scope.md) for current v1 scope and implementation status.
 
 ## Structure
 
@@ -42,6 +42,6 @@ npm install
 npm start
 ```
 
-Then press `i` for iOS simulator, `a` for Android emulator, or `w` for a web preview (works without Xcode/Android Studio — useful for quick UI iteration).
+Then press `i` for iOS simulator, `a` for Android emulator, or `w` for a web preview (works without Xcode/Android Studio — useful for quick UI iteration). The web preview renders the app inside a fixed 402×874 phone-shaped frame centered on the page, matching the design prototype's own device frame — this only affects the browser preview, not the real app, which already fills the actual device's screen on iOS/Android.
 
 Once the scan flow is wired to the backend, update `API_BASE_URL` in `mobile/src/api/client.ts` to your machine's LAN IP (not `localhost`) when running on a physical device or simulator.
