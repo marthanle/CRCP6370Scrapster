@@ -151,6 +151,8 @@ export function useScrapsterState() {
   const [composeDish, setComposeDish] = useState("");
   const [composeCaption, setComposeCaption] = useState("");
   const [composePicks, setComposePicks] = useState<Record<number, boolean>>({});
+  const [composePhotoUri, setComposePhotoUri] = useState<string | null>(null);
+  const [composePhotoError, setComposePhotoError] = useState<string | null>(null);
 
   const nextIdRef = useRef(7);
 
@@ -348,6 +350,8 @@ export function useScrapsterState() {
     setComposeDish("");
     setComposeCaption("");
     setComposePicks({});
+    setComposePhotoUri(null);
+    setComposePhotoError(null);
     setScreen("compose");
   }, []);
 
@@ -365,6 +369,7 @@ export function useScrapsterState() {
       author: "You",
       mine: true,
       dish,
+      photo: composePhotoUri ? { uri: composePhotoUri } : undefined,
       caption: composeCaption.trim() || undefined,
       tags: picked.map((p) => p.name),
       saved,
@@ -376,7 +381,17 @@ export function useScrapsterState() {
     };
     setCommunityPosts((prev) => [post, ...prev]);
     setScreen("community");
-  }, [composeCaption, composeDish, composePicks, pantry]);
+  }, [composeCaption, composeDish, composePhotoUri, composePicks, pantry]);
+
+  const pickComposePhoto = useCallback(async () => {
+    setComposePhotoError(null);
+    try {
+      const photo = await pickPhoto("library");
+      if (photo) setComposePhotoUri(photo.uri);
+    } catch (err) {
+      setComposePhotoError(err instanceof PhotoPermissionError ? err.message : "I couldn't open your photos.");
+    }
+  }, []);
 
   const isRecipeSaved = useCallback(
     (id: string) => savedRecipes.some((r) => r.id === id),
@@ -810,6 +825,10 @@ export function useScrapsterState() {
     sendComment,
 
     openCompose,
+    composePhotoUri,
+    composePhotoError,
+    pickComposePhoto,
+    removeComposePhoto: () => setComposePhotoUri(null),
     composeDish,
     setComposeDish,
     composeCaption,

@@ -197,6 +197,10 @@ export default function App() {
         )}
         {s.screen === "compose" && (
           <ComposeScreen
+            photoUri={s.composePhotoUri}
+            photoError={s.composePhotoError}
+            onPickPhoto={s.pickComposePhoto}
+            onRemovePhoto={s.removeComposePhoto}
             dish={s.composeDish}
             onDishChange={s.setComposeDish}
             caption={s.composeCaption}

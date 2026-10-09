@@ -2,21 +2,25 @@ import { Platform } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 
 export interface PickedPhoto {
+  uri: string;
   base64: string;
   mediaType: string;
 }
 
 export class PhotoPermissionError extends Error {}
 
-/** Camera on a phone, photo library on web (browsers have no camera roll API here). */
-export async function pickPhoto(): Promise<PickedPhoto | null> {
-  const useCamera = Platform.OS !== "web";
+/**
+ * "camera" opens the camera on a phone; the web has no camera roll API, so it
+ * falls back to the file picker there. "library" always opens the photo library.
+ */
+export async function pickPhoto(from: "camera" | "library" = "camera"): Promise<PickedPhoto | null> {
+  const useCamera = from === "camera" && Platform.OS !== "web";
   const permission = useCamera
     ? await ImagePicker.requestCameraPermissionsAsync()
     : await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permission.granted) {
     throw new PhotoPermissionError(
-      useCamera ? "Camera access is needed to scan." : "Photo access is needed to scan.",
+      useCamera ? "Camera access is needed to scan." : "Photo access is needed to pick a photo.",
     );
   }
 
@@ -31,5 +35,5 @@ export async function pickPhoto(): Promise<PickedPhoto | null> {
 
   const asset = !result.canceled ? result.assets[0] : undefined;
   if (!asset?.base64) return null;
-  return { base64: asset.base64, mediaType: asset.mimeType ?? "image/jpeg" };
+  return { uri: asset.uri, base64: asset.base64, mediaType: asset.mimeType ?? "image/jpeg" };
 }

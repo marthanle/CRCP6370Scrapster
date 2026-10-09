@@ -1,8 +1,12 @@
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { colors, font, radius } from "../theme";
 import { ComposePickRow } from "../types/pantry";
 
 interface Props {
+  photoUri: string | null;
+  photoError: string | null;
+  onPickPhoto: () => void;
+  onRemovePhoto: () => void;
   dish: string;
   onDishChange: (text: string) => void;
   caption: string;
@@ -15,6 +19,10 @@ interface Props {
 }
 
 export default function ComposeScreen({
+  photoUri,
+  photoError,
+  onPickPhoto,
+  onRemovePhoto,
   dish,
   onDishChange,
   caption,
@@ -38,12 +46,27 @@ export default function ComposeScreen({
         <Text style={styles.title}>Share what you made</Text>
         <Text style={styles.subtitle}>Show people what a fridge of odds and ends can turn into.</Text>
 
-        <TouchableOpacity activeOpacity={0.8} style={styles.photoSlot}>
-          <View style={styles.photoPlus}>
-            <Text style={styles.photoPlusText}>+</Text>
+        {photoUri ? (
+          <View style={styles.photoFilled}>
+            <Image source={{ uri: photoUri }} style={styles.photoImage} resizeMode="cover" />
+            <View style={styles.photoActions}>
+              <TouchableOpacity activeOpacity={0.8} style={styles.photoActionBtn} onPress={onPickPhoto}>
+                <Text style={styles.photoActionText}>Change</Text>
+              </TouchableOpacity>
+              <TouchableOpacity activeOpacity={0.8} style={styles.photoActionBtn} onPress={onRemovePhoto}>
+                <Text style={styles.photoActionText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <Text style={styles.photoSlotLabel}>Add a photo of the dish</Text>
-        </TouchableOpacity>
+        ) : (
+          <TouchableOpacity activeOpacity={0.8} style={styles.photoSlot} onPress={onPickPhoto}>
+            <View style={styles.photoPlus}>
+              <Text style={styles.photoPlusText}>+</Text>
+            </View>
+            <Text style={styles.photoSlotLabel}>Add a photo of the dish</Text>
+          </TouchableOpacity>
+        )}
+        {photoError && <Text style={styles.photoError}>{photoError}</Text>}
 
         <Text style={styles.fieldLabel}>What's it called?</Text>
         <TextInput
@@ -125,6 +148,12 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   photoPlusText: { fontSize: 20, fontFamily: font.semibold, color: colors.primary },
+  photoFilled: { height: 190, borderRadius: radius.md, overflow: "hidden", marginBottom: 16 },
+  photoImage: { width: "100%", height: "100%" },
+  photoActions: { position: "absolute", right: 10, bottom: 10, flexDirection: "row", gap: 8 },
+  photoActionBtn: { backgroundColor: "rgba(255,255,255,0.92)", paddingHorizontal: 12, paddingVertical: 7, borderRadius: radius.pill },
+  photoActionText: { fontFamily: font.semibold, fontSize: 12.5, color: colors.text },
+  photoError: { fontFamily: font.regular, fontSize: 12.5, color: colors.urgentToday, marginTop: -8, marginBottom: 12 },
   photoSlotLabel: { fontFamily: font.medium, fontSize: 12, color: "#5E665F" },
   fieldLabel: { fontFamily: font.bold, fontSize: 14.5, color: colors.text, marginBottom: 8 },
   optional: { fontFamily: font.regular, color: colors.textFaint },
