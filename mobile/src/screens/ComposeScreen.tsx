@@ -1,4 +1,4 @@
-import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { colors, font, radius } from "../theme";
 import { ComposePickRow } from "../types/pantry";
 
@@ -17,6 +17,9 @@ interface Props {
   caption: string;
   onCaptionChange: (text: string) => void;
   pickRows: ComposePickRow[];
+  pickedCount: number;
+  useUp: boolean;
+  onUseUpChange: (on: boolean) => void;
   savedPreview: string;
   canSubmit: boolean;
   onSubmit: () => void;
@@ -38,6 +41,9 @@ export default function ComposeScreen({
   caption,
   onCaptionChange,
   pickRows,
+  pickedCount,
+  useUp,
+  onUseUpChange,
   savedPreview,
   canSubmit,
   onSubmit,
@@ -108,6 +114,18 @@ export default function ComposeScreen({
             </TouchableOpacity>
           ))}
         </View>
+        {!isEditing && pickedCount > 0 && (
+          <View style={styles.useUpRow}>
+            <Text style={styles.useUpText}>
+              Take {pickedCount === 1 ? "this" : `these ${pickedCount}`} out of my kitchen
+            </Text>
+            <Switch
+              value={useUp}
+              onValueChange={onUseUpChange}
+              trackColor={{ true: colors.primary, false: colors.border }}
+            />
+          </View>
+        )}
 
         <Text style={styles.fieldLabel}>
           What did you use? <Text style={styles.optional}>optional</Text>
@@ -200,7 +218,13 @@ const styles = StyleSheet.create({
   },
   pickHeaderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 },
   pickHeaderSub: { fontFamily: font.medium, fontSize: 12, color: colors.textMuted },
-  pickWrap: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginBottom: 16 },
+  pickWrap: { flexDirection: "row", flexWrap: "wrap", gap: 7, marginBottom: 14 },
+  useUpRow: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm,
+    paddingHorizontal: 15, paddingVertical: 10, marginBottom: 16,
+  },
+  useUpText: { fontFamily: font.medium, fontSize: 13.5, color: colors.text, flex: 1, paddingRight: 10 },
   pickChip: { paddingHorizontal: 13, paddingVertical: 8, borderRadius: radius.pill, borderWidth: 1 },
   textarea: {
     backgroundColor: colors.card, borderWidth: 1, borderColor: colors.border, borderRadius: radius.sm,

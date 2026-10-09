@@ -215,6 +215,9 @@ export default function App() {
             caption={s.composeCaption}
             onCaptionChange={s.setComposeCaption}
             pickRows={s.composePickRows}
+            pickedCount={s.composePickedCount}
+            useUp={s.composeUseUp}
+            onUseUpChange={s.setComposeUseUp}
             savedPreview={s.composeSavedPreview}
             canSubmit={s.canSubmitPost}
             onSubmit={s.submitPost}

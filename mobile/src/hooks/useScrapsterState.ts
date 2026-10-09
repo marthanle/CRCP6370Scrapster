@@ -158,6 +158,7 @@ export function useScrapsterState() {
   const [composeCaption, setComposeCaption] = useState("");
   const [composeIngredients, setComposeIngredients] = useState("");
   const [composeSteps, setComposeSteps] = useState("");
+  const [composeUseUp, setComposeUseUp] = useState(true);
   const [composePicks, setComposePicks] = useState<Record<number, boolean>>({});
   const [composePhotoUri, setComposePhotoUri] = useState<string | null>(null);
   const [composePhotoError, setComposePhotoError] = useState<string | null>(null);
@@ -370,6 +371,7 @@ export function useScrapsterState() {
     setComposePicks({});
     setComposeIngredients("");
     setComposeSteps("");
+    setComposeUseUp(true);
     setComposePhotoUri(null);
     setComposePhotoError(null);
     setEditingPostId(null);
@@ -439,8 +441,13 @@ export function useScrapsterState() {
       return;
     }
     setCommunityPosts((prev) => [post, ...prev]);
+    // You made it, so the items you picked are gone from the kitchen.
+    if (composeUseUp && picked.length > 0) {
+      const gone = new Set(picked.map((p) => p.id));
+      setPantry((prev) => prev.filter((p) => !gone.has(p.id)));
+    }
     setScreen("community");
-  }, [editingPostId, composeCaption, composeDish, composeIngredients, composePhotoUri, composePicks, composeSteps, pantry]);
+  }, [editingPostId, composeUseUp, composeCaption, composeDish, composeIngredients, composePhotoUri, composePicks, composeSteps, pantry]);
 
   const pickComposePhoto = useCallback(async () => {
     setComposePhotoError(null);
@@ -902,6 +909,9 @@ export function useScrapsterState() {
     setComposeIngredients,
     composeSteps,
     setComposeSteps,
+    composeUseUp,
+    setComposeUseUp,
+    composePickedCount: Object.keys(composePicks).filter((k) => composePicks[Number(k)]).length,
     setComposeCaption,
     composePickRows,
     composeSavedPreview,
