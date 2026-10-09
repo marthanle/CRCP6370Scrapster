@@ -573,6 +573,7 @@ export function useScrapsterState() {
         const showMatch = feedSort === "match" && !p.mine && match > 0;
         return {
           id: p.id,
+          photo: p.photo,
           author: p.author,
           mine: !!p.mine,
           dish: p.dish,

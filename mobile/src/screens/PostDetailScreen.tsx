@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { colors, font, radius } from "../theme";
 import { CommentIcon, SendIcon } from "../components/icons";
 import { CommunityPost } from "../types/pantry";
@@ -47,7 +47,11 @@ export default function PostDetailScreen({
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={styles.container} bounces={false}>
         <View style={styles.hero}>
-          <Text style={styles.heroLabel}>dish photo, full bleed</Text>
+          {post.photo ? (
+            <Image source={post.photo} style={StyleSheet.absoluteFill} resizeMode="cover" />
+          ) : (
+            <Text style={styles.heroLabel}>dish photo, full bleed</Text>
+          )}
           <TouchableOpacity activeOpacity={0.8} style={styles.backBtn} onPress={onBack}>
             <Text style={styles.backBtnText}>←</Text>
           </TouchableOpacity>

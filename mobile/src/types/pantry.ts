@@ -24,8 +24,11 @@ export interface CommunityIngredient {
   key: string;
 }
 
+import { ImageSourcePropType } from "react-native";
+
 export interface CommunityPost {
   id: string;
+  photo?: ImageSourcePropType;
   author: string;
   mine?: boolean;
   dish: string;
@@ -73,6 +76,7 @@ export type CookbookFilter = "all" | "ready" | "feed";
 
 export interface FeedPostCard {
   id: string;
+  photo?: ImageSourcePropType;
   author: string;
   mine: boolean;
   dish: string;

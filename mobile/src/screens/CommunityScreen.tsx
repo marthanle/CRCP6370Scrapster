@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors, font, radius } from "../theme";
 import { ChevronDownIcon, CommentIcon } from "../components/icons";
 import { FeedPostCard, FeedSortOption } from "../types/pantry";
@@ -84,9 +84,13 @@ export default function CommunityScreen({
       <View style={{ gap: 10 }}>
         {posts.map((post) => (
           <TouchableOpacity key={post.id} activeOpacity={0.9} style={styles.card} onPress={post.open}>
-            <View style={styles.photoPlaceholder}>
-              <Text style={styles.photoPlaceholderText}>dish photo</Text>
-            </View>
+            {post.photo ? (
+              <Image source={post.photo} style={styles.photo} resizeMode="cover" />
+            ) : (
+              <View style={styles.photoPlaceholder}>
+                <Text style={styles.photoPlaceholderText}>dish photo</Text>
+              </View>
+            )}
             <View style={styles.cardBody}>
               <View style={styles.cardHeader}>
                 <View style={[styles.avatar, post.avatarMine && styles.avatarMine]}>
@@ -177,6 +181,7 @@ const styles = StyleSheet.create({
   card: { backgroundColor: colors.card, borderRadius: radius.md, overflow: "hidden",
     shadowColor: "#14171A", shadowOpacity: 0.07, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 1,
   },
+  photo: { height: 148, width: "100%" },
   photoPlaceholder: {
     height: 148, backgroundColor: colors.skeletonDish, alignItems: "center", justifyContent: "center",
   },

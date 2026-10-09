@@ -47,6 +47,7 @@ export const SEED_COMMUNITY_POSTS: CommunityPost[] = [
   {
     id: "p2",
     author: "Devon",
+    photo: require("../../assets/posts/devon-soup.jpg"),
     dish: "Last-bread-slice grilled cheese + soup",
     saved: 2.1,
     time: "5h ago",
