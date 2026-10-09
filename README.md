@@ -6,7 +6,7 @@ See [docs/product-brief.md](docs/product-brief.md) for the full product spec, [d
 
 ## Structure
 
-- `mobile/` — React Native (Expo) app covering the full design handoff: login, diet/allergy onboarding, home, settings, kitchen list, scan, confirm/dedupe, recipe result, budget mode, step-by-step recipe, cooked celebration, savings tracker, a recipe-link importer, saved recipes ("cookbook"), and a community feed (sort/filter, post detail with comments, compose).
+- `mobile/` — React Native (Expo) app covering the full design handoff: login, diet/allergy onboarding, home, settings, kitchen list, scan, confirm/dedupe, recipe result, budget mode, step-by-step recipe, cooked celebration, savings tracker, a recipe-link importer, saved recipes ("cookbook"), and a community feed (sort/filter, post detail with comments, compose with photo/ingredients/steps, edit your own posts).
 - `backend/` — Node/Express service that calls Claude for ingredient parsing (photo or list) + urgency ranking + recipe generation, and for fetching/parsing recipes from a pasted URL.
 
 ## Status

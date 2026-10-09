@@ -130,6 +130,7 @@ export function useScrapsterState() {
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(SEED_COMMUNITY_POSTS);
   const [hasSharedCurrent, setHasSharedCurrent] = useState(false);
   const [allergies, setAllergies] = useState("");
+  const [dietFromSettings, setDietFromSettings] = useState(false);
 
   const [scanFound, setScanFound] = useState<ScannedItem[]>([]);
   const [scanError, setScanError] = useState<string | null>(null);
@@ -164,7 +165,16 @@ export function useScrapsterState() {
 
   const nextIdRef = useRef(7);
 
-  const go = useCallback((next: Screen) => setScreen(next), []);
+  const go = useCallback((next: Screen) => {
+    // The diet screen doubles as first-run onboarding and as the Settings page.
+    if (next === "diet") setDietFromSettings(false);
+    setScreen(next);
+  }, []);
+
+  const openDietFromSettings = useCallback(() => {
+    setDietFromSettings(true);
+    setScreen("diet");
+  }, []);
 
   const scan = useCallback(async (src: ScanSourceKey) => {
     setScanError(null);
@@ -806,8 +816,10 @@ export function useScrapsterState() {
     [recipe],
   );
 
+  const allergyList = parseAllergies(allergies);
   const dietSummary =
-    (Object.keys(diet).filter((k) => diet[k]).join(", ") || "Nothing set") + " · no allergies";
+    (Object.keys(diet).filter((k) => diet[k]).join(", ") || "Nothing set") +
+    (allergyList.length ? ` · avoids ${allergyList.join(", ")}` : " · no allergies");
 
   return {
     screen,
@@ -915,5 +927,9 @@ export function useScrapsterState() {
     openSavedRecipe,
 
     dietSummary,
+    dietFromSettings,
+    openDietFromSettings,
+    lifetimeSavedLabel: `$${(212.8 + (monthSaved - 32.1)).toFixed(2)}`,
+    lifetimeItems: 63 + (monthItems - 9),
   };
 }

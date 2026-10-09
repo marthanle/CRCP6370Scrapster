@@ -33,7 +33,7 @@ First-apartment kitchen: stove + oven available (not dorm-only microwave/mini-fr
 12. **Settings** — profile, diet & allergies (links back to onboarding), kitchen list, kitchen setup, Scrapster+ upsell, notifications toggle, email/password, and Log out. Reached by tapping the avatar on Home.
 13. **Community feed v2** — "Has recipe" filter and a 4-way sort popover (Best match / Newest / Most saved / Most liked), a "uses N things you have" match badge, and a compose-entry card at the top of the feed.
 14. **Post detail** — full post view: photo, caption, tags, like/comment/save actions, either a full recipe (ingredient match list + numbered steps) or a "didn't drop the recipe" note, and a comment thread with a composer.
-15. **Compose a post** — dish name, multi-select "what did you rescue" chips sourced from the kitchen list, optional caption, a live "+$X.XX saved" preview computed from the picked items, posts to the feed.
+15. **Compose a post** — dish name, a photo picked from your library, multi-select "what did you rescue" chips sourced from the kitchen list, optional ingredients and steps (one per line; a post with either counts as having a recipe), optional caption, a live "+$X.XX saved" preview computed from the picked items, posts to the feed. You can Edit your own posts (the compose screen reopens prefilled). On your own post every ingredient shows "you have it" since you made it with them.
 16. **Saved recipes ("cookbook")** — recipes saved from an import result or a feed post, filterable (All / Ready-ish / From the feed), sorted by how much of each you can already make; reopens into the same result view used for a fresh import.
 
 ## Implementation status
@@ -62,14 +62,15 @@ First-apartment kitchen: stove + oven available (not dorm-only microwave/mini-fr
 - **Login/auth, store prices, and the savings tracker's history** are still UI-only/mocked. Budget
   mode's three stores are derived from the model's price estimate for the missing items (and say
   so on screen) — there is no grocery-price source. The tracker's lifetime/monthly chart data is
-  placeholder (`mobile/src/data/trackerData.ts`); only this month's total moves when you cook.
+  placeholder (`mobile/src/data/trackerData.ts`); when you cook, this month's total, the lifetime
+  total and the items-rescued counts all move together (Home, Cooked and Tracker agree).
   The kitchen list, month total, and everything else reset on app reload — nothing is persisted
   yet.
 - **Community feed, post detail, compose, and saved recipes:** all fully built and interactive —
   sort/filter, comments, likes, saving a recipe from a post or an import, the compose flow's live
-  savings preview — but entirely **local-state only** (`mobile/src/data/communityFeed.ts` seeds 3
-  posts from Priya/Devon/Mei with full captions/ingredients/steps/comments, matching the design
-  handoff verbatim). There's no backend — posts, comments, likes, and saved recipes don't persist
+  savings preview — but entirely **local-state only** (`mobile/src/data/communityFeed.ts` seeds 4
+  posts: Priya/Devon/Mei with full captions/ingredients/steps/comments matching the design
+  handoff, each with a real photo, plus your own "Sunset toast"). There's no backend — posts, comments, likes, and saved recipes don't persist
   past an app reload and aren't visible to other real users. Needs a shared backend store (posts,
   comments, likes, saved-recipe join table) before this is a real multi-user feature — the
   suggested build order's step 7 flags this explicitly.

@@ -3,6 +3,7 @@ import { Pill, PrimaryButton, TextButton } from "../components/ui";
 import { colors, font } from "../theme";
 
 interface Props {
+  fromSettings: boolean;
   diets: Array<{ label: string; on: boolean }>;
   onToggleDiet: (label: string) => void;
   allergies: string;
@@ -11,13 +12,15 @@ interface Props {
   onSkip: () => void;
 }
 
-export default function DietScreen({ diets, onToggleDiet, allergies, onAllergiesChange, onContinue, onSkip }: Props) {
+export default function DietScreen({ fromSettings, diets, onToggleDiet, allergies, onAllergiesChange, onContinue, onSkip }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.progressRow}>
-        <View style={[styles.progressSeg, { backgroundColor: colors.primary }]} />
-        <View style={[styles.progressSeg, { backgroundColor: colors.border }]} />
-      </View>
+      {!fromSettings && (
+        <View style={styles.progressRow}>
+          <View style={[styles.progressSeg, { backgroundColor: colors.primary }]} />
+          <View style={[styles.progressSeg, { backgroundColor: colors.border }]} />
+        </View>
+      )}
 
       <Text style={styles.title}>Anything you don't eat?</Text>
       <Text style={styles.subtitle}>
@@ -52,10 +55,12 @@ export default function DietScreen({ diets, onToggleDiet, allergies, onAllergies
         </Text>
       </View>
 
-      <PrimaryButton label="Continue" onPress={onContinue} style={{ marginBottom: 12 }} />
-      <View style={{ alignItems: "center" }}>
-        <TextButton label="Skip for now" onPress={onSkip} color={colors.textFaint} />
-      </View>
+      <PrimaryButton label={fromSettings ? "Save" : "Continue"} onPress={onContinue} style={{ marginBottom: 12 }} />
+      {!fromSettings && (
+        <View style={{ alignItems: "center" }}>
+          <TextButton label="Skip for now" onPress={onSkip} color={colors.textFaint} />
+        </View>
+      )}
     </ScrollView>
   );
 }

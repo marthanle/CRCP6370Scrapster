@@ -62,9 +62,10 @@ export default function App() {
           <DietScreen
             diets={s.diets}
             onToggleDiet={s.toggleDiet}
+            fromSettings={s.dietFromSettings}
             allergies={s.allergies}
             onAllergiesChange={s.setAllergies}
-            onContinue={() => s.go("home")}
+            onContinue={() => s.go(s.dietFromSettings ? "settings" : "home")}
             onSkip={() => s.go("home")}
           />
         )}
@@ -96,7 +97,7 @@ export default function App() {
             dietSummary={s.dietSummary}
             pantryCount={s.pantryCount}
             onBack={() => s.go("home")}
-            onGoDiet={() => s.go("diet")}
+            onGoDiet={s.openDietFromSettings}
             onGoPantry={() => s.go("pantry")}
             onLogOut={() => s.go("login")}
           />
@@ -163,7 +164,9 @@ export default function App() {
             hasShared={s.hasSharedCurrent}
           />
         )}
-        {s.screen === "tracker" && <TrackerScreen />}
+        {s.screen === "tracker" && (
+          <TrackerScreen lifetimeSavedLabel={s.lifetimeSavedLabel} lifetimeItems={s.lifetimeItems} />
+        )}
         {s.screen === "community" && (
           <CommunityScreen
             posts={s.communityPosts}

@@ -5,14 +5,19 @@ import { MONTHLY_SAVINGS_BARS, RESCUE_CATEGORIES } from "../data/trackerData";
 
 const MAX_BAR = Math.max(...MONTHLY_SAVINGS_BARS.map(([, v]) => v));
 
-export default function TrackerScreen() {
+interface Props {
+  lifetimeSavedLabel: string;
+  lifetimeItems: number;
+}
+
+export default function TrackerScreen({ lifetimeSavedLabel, lifetimeItems }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Your scraps, counted</Text>
 
       <View style={styles.savedCard}>
         <Text style={styles.savedLabel}>Saved since you started</Text>
-        <Text style={styles.savedAmount}>$212.80</Text>
+        <Text style={styles.savedAmount}>{lifetimeSavedLabel}</Text>
         <View style={styles.barsRow}>
           {MONTHLY_SAVINGS_BARS.map(([label, v], i) => {
             const isLast = i === MONTHLY_SAVINGS_BARS.length - 1;
@@ -35,7 +40,7 @@ export default function TrackerScreen() {
       </View>
 
       <View style={styles.statRow}>
-        <StatTile value="63" label="items rescued" />
+        <StatTile value={String(lifetimeItems)} label="items rescued" />
         <StatTile value="9h" label="not spent deciding" />
       </View>
 
