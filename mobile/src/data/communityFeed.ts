@@ -7,6 +7,33 @@ import { CommunityPost } from "../types/pantry";
  */
 export const SEED_COMMUNITY_POSTS: CommunityPost[] = [
   {
+    id: "p0",
+    author: "You",
+    mine: true,
+    photo: require("../../assets/posts/sunset-toast.jpg"),
+    dish: "Sunset toast",
+    saved: 2.4,
+    time: "1h ago",
+    ageMinutes: 60,
+    likes: 0,
+    liked: false,
+    caption: "last heel of the sourdough, one egg, and the tomatoes that were about to turn. caught the sunset and breakfast-for-dinner at the same time",
+    tags: ["Eggs", "Bread heel", "Tomatoes"],
+    meta: "10 min · one pan · serves 1",
+    ingredients: [
+      { text: "1 slice of toast", key: "toast" },
+      { text: "1 egg", key: "egg" },
+      { text: "a few cherry tomatoes, halved", key: "tomato" },
+      { text: "chili flakes, to finish", key: "chili" },
+    ],
+    steps: [
+      "Roast or pan-blister the halved tomatoes until they collapse, about 5 minutes.",
+      "Fry the egg in the same pan until the white is set and the yolk is still runny.",
+      "Pile the egg and tomatoes on the toast and finish with chili flakes.",
+    ],
+    comments: [],
+  },
+  {
     id: "p1",
     author: "Priya",
     photo: require("../../assets/posts/priya-fried-rice.jpg"),

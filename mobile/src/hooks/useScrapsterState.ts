@@ -679,7 +679,8 @@ export function useScrapsterState() {
   const selectedPostDetail = useMemo(() => {
     if (!selectedPost) return null;
     const ingredients = (selectedPost.ingredients ?? []).map((i) => {
-      const have = pantry.some((p) => p.name.toLowerCase().includes(i.key));
+      // You made your own post with all of these, whatever is left in the kitchen now.
+      const have = selectedPost.mine || pantry.some((p) => p.name.toLowerCase().includes(i.key));
       return { text: i.text, have };
     });
     const haveCount = ingredients.filter((i) => i.have).length;
@@ -693,7 +694,9 @@ export function useScrapsterState() {
       hasRecipe: postHasRecipe(selectedPost),
       ingredients,
       haveCount,
-      matchLine: `You already have ${haveCount} of ${ingredients.length} ingredients.`,
+      matchLine: selectedPost.mine
+        ? `You used ${ingredients.length} ingredient${ingredients.length === 1 ? "" : "s"}.`
+        : `You already have ${haveCount} of ${ingredients.length} ingredients.`,
       isSaved,
       toggleSave: () => {
         if (postHasRecipe(selectedPost)) {
