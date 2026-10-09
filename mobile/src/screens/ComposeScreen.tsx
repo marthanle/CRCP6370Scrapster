@@ -3,6 +3,10 @@ import { colors, font, radius } from "../theme";
 import { ComposePickRow } from "../types/pantry";
 
 interface Props {
+  ingredients: string;
+  onIngredientsChange: (text: string) => void;
+  steps: string;
+  onStepsChange: (text: string) => void;
   photoUri: string | null;
   photoError: string | null;
   onPickPhoto: () => void;
@@ -19,6 +23,10 @@ interface Props {
 }
 
 export default function ComposeScreen({
+  ingredients,
+  onIngredientsChange,
+  steps,
+  onStepsChange,
   photoUri,
   photoError,
   onPickPhoto,
@@ -98,6 +106,32 @@ export default function ComposeScreen({
             </TouchableOpacity>
           ))}
         </View>
+
+        <Text style={styles.fieldLabel}>
+          What did you use? <Text style={styles.optional}>optional</Text>
+        </Text>
+        <TextInput
+          style={styles.textarea}
+          placeholder={"One per line, e.g.\n2 cups day-old rice\n½ bell pepper, diced"}
+          placeholderTextColor={colors.textFaint}
+          value={ingredients}
+          onChangeText={onIngredientsChange}
+          multiline
+          numberOfLines={4}
+        />
+
+        <Text style={styles.fieldLabel}>
+          How did you make it? <Text style={styles.optional}>optional</Text>
+        </Text>
+        <TextInput
+          style={styles.textarea}
+          placeholder={"One step per line, e.g.\nGet the pan smoking hot\nAdd the rice and leave it 2 minutes"}
+          placeholderTextColor={colors.textFaint}
+          value={steps}
+          onChangeText={onStepsChange}
+          multiline
+          numberOfLines={4}
+        />
 
         <Text style={styles.fieldLabel}>
           Anything to add? <Text style={styles.optional}>optional</Text>

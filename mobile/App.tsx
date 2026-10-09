@@ -203,6 +203,10 @@ export default function App() {
             onRemovePhoto={s.removeComposePhoto}
             dish={s.composeDish}
             onDishChange={s.setComposeDish}
+            ingredients={s.composeIngredients}
+            onIngredientsChange={s.setComposeIngredients}
+            steps={s.composeSteps}
+            onStepsChange={s.setComposeSteps}
             caption={s.composeCaption}
             onCaptionChange={s.setComposeCaption}
             pickRows={s.composePickRows}

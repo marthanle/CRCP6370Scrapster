@@ -5,6 +5,7 @@ import { SEED_COMMUNITY_POSTS } from "../data/communityFeed";
 import { priceOf } from "../data/priceTable";
 import { ApiError, importRecipe, planRecipe, scanPhoto } from "../api/client";
 import { PhotoPermissionError, pickPhoto } from "../photoPicker";
+import { ingredientKey, parseLines } from "../ingredientKey";
 import { RecipePlan, ScannedItem } from "../types";
 import {
   CommunityPost,
@@ -42,6 +43,10 @@ const MONTH_GOAL = 50;
 
 function norm(s: string) {
   return s.toLowerCase().trim();
+}
+
+function postHasRecipe(p: CommunityPost): boolean {
+  return (p.steps?.length ?? 0) > 0 || (p.ingredients?.length ?? 0) > 0;
 }
 
 function parseAllergies(text: string): string[] {
@@ -150,6 +155,8 @@ export function useScrapsterState() {
 
   const [composeDish, setComposeDish] = useState("");
   const [composeCaption, setComposeCaption] = useState("");
+  const [composeIngredients, setComposeIngredients] = useState("");
+  const [composeSteps, setComposeSteps] = useState("");
   const [composePicks, setComposePicks] = useState<Record<number, boolean>>({});
   const [composePhotoUri, setComposePhotoUri] = useState<string | null>(null);
   const [composePhotoError, setComposePhotoError] = useState<string | null>(null);
@@ -350,6 +357,8 @@ export function useScrapsterState() {
     setComposeDish("");
     setComposeCaption("");
     setComposePicks({});
+    setComposeIngredients("");
+    setComposeSteps("");
     setComposePhotoUri(null);
     setComposePhotoError(null);
     setScreen("compose");
@@ -362,6 +371,8 @@ export function useScrapsterState() {
   const submitPost = useCallback(() => {
     const dish = composeDish.trim();
     if (!dish) return;
+    const ingredientLines = parseLines(composeIngredients);
+    const stepLines = parseLines(composeSteps);
     const picked = pantry.filter((p) => composePicks[p.id]);
     const saved = picked.reduce((a, p) => a + priceOf(p.name), 0);
     const post: CommunityPost = {
@@ -371,6 +382,10 @@ export function useScrapsterState() {
       dish,
       photo: composePhotoUri ? { uri: composePhotoUri } : undefined,
       caption: composeCaption.trim() || undefined,
+      ingredients: ingredientLines.length
+        ? ingredientLines.map((text) => ({ text, key: ingredientKey(text) }))
+        : undefined,
+      steps: stepLines.length ? stepLines : undefined,
       tags: picked.map((p) => p.name),
       saved,
       time: "just now",
@@ -381,7 +396,7 @@ export function useScrapsterState() {
     };
     setCommunityPosts((prev) => [post, ...prev]);
     setScreen("community");
-  }, [composeCaption, composeDish, composePhotoUri, composePicks, pantry]);
+  }, [composeCaption, composeDish, composeIngredients, composePhotoUri, composePicks, composeSteps, pantry]);
 
   const pickComposePhoto = useCallback(async () => {
     setComposePhotoError(null);
@@ -580,7 +595,7 @@ export function useScrapsterState() {
 
   const feedPosts = useMemo(() => {
     return communityPosts
-      .filter((p) => !feedHasRecipeOnly || (p.steps && p.steps.length > 0))
+      .filter((p) => !feedHasRecipeOnly || postHasRecipe(p))
       .slice()
       .sort(SORT_FNS[feedSort])
       .map((p) => {
@@ -601,7 +616,7 @@ export function useScrapsterState() {
           showMatch,
           matchLabel: showMatch ? `uses ${match} thing${match === 1 ? "" : "s"} you have` : "",
           commentCount: p.comments.length,
-          recipeHint: p.steps && p.steps.length ? "See recipe →" : "View →",
+          recipeHint: postHasRecipe(p) ? "See recipe →" : "View →",
           open: () => openPost(p.id),
           toggleLike: () => toggleLike(p.id),
         };
@@ -641,13 +656,13 @@ export function useScrapsterState() {
       avatarMine: !!selectedPost.mine,
       authorShort: selectedPost.mine ? "you" : selectedPost.author,
       savedLabel: `+$${selectedPost.saved.toFixed(2)}`,
-      hasRecipe: !!(selectedPost.steps && selectedPost.steps.length),
+      hasRecipe: postHasRecipe(selectedPost),
       ingredients,
       haveCount,
       matchLine: `You already have ${haveCount} of ${ingredients.length} ingredients.`,
       isSaved,
       toggleSave: () => {
-        if (selectedPost.steps && selectedPost.steps.length) {
+        if (postHasRecipe(selectedPost)) {
           toggleSavedRecipe(postToSavedRecipe(selectedPost));
         }
       },
@@ -832,6 +847,10 @@ export function useScrapsterState() {
     composeDish,
     setComposeDish,
     composeCaption,
+    composeIngredients,
+    setComposeIngredients,
+    composeSteps,
+    setComposeSteps,
     setComposeCaption,
     composePickRows,
     composeSavedPreview,
