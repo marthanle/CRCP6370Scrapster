@@ -9,7 +9,8 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSPhotoLibraryUsageDescription": "Scrapster needs access to your photos so you can snap a picture of your fridge or pantry."
+        "NSPhotoLibraryUsageDescription": "Scrapster needs access to your photos so you can snap a picture of your fridge or pantry.",
+        "NSCameraUsageDescription": "Scrapster uses your camera to read your fridge, pantry shelf, or grocery receipt."
       }
     },
     "android": {

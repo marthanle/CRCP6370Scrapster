@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Card, ProgressBar, StatTile } from "../components/ui";
 import { colors, font, radius } from "../theme";
-import { MONTHLY_SAVINGS_BARS, RESCUE_CATEGORIES } from "../data/demoRecipe";
+import { MONTHLY_SAVINGS_BARS, RESCUE_CATEGORIES } from "../data/trackerData";
 
 const MAX_BAR = Math.max(...MONTHLY_SAVINGS_BARS.map(([, v]) => v));
 

@@ -11,11 +11,10 @@ See [docs/product-brief.md](docs/product-brief.md) for the full product spec, [d
 
 ## Status
 
-- **Mobile UI:** fully built and matches the design, but the scan/cook flow runs on **mock data** — it uses canned sample datasets (`mobile/src/data/scanSources.ts`) and the recipe screens show a fixed demo dish (`mobile/src/data/demoRecipe.ts`), the same way the design prototype itself worked.
-- **Backend:** real Claude-based ingredient parsing + recipe generation is implemented (`backend/src/claude.ts`) but **not yet wired** into the mobile app's scan flow. Connecting the two — so a real photo produces a real AI-generated recipe — is the next step.
-- **Recipe import is already real, end-to-end:** paste a link on the Home screen and the backend actually fetches the page with Claude's web-fetch tool, extracts the ingredients, and the app shows what you have vs. still need to buy. Needs `ANTHROPIC_API_KEY` set and the backend running.
-- **Community feed, post detail, compose, and saved recipes:** all fully built and interactive (sort/filter, comments, likes, saving recipes), but local-state only — no backend, so posts/comments/likes/saves don't persist or sync across users yet.
-- **Settings:** UI-only — Log out just returns to the login screen (no real auth session exists yet to tear down).
+- **Scan → kitchen list → dinner is wired to the backend.** A photo of the fridge, pantry shelf, or a receipt goes to `POST /api/scan` (Claude vision → items with quantity and days-left), you review/merge them, and "Cook from this list" calls `POST /api/recipe` to commit to one dish. The result, recipe, budget, and cooked screens all render that real response, and cooking consumes the kitchen list per the recipe. Diet preferences and the allergies field are sent with every request; allergies are a hard filter enforced server-side.
+- **Recipe import** is real too: paste a link and the backend fetches the page with Claude's web-fetch tool and extracts the ingredients.
+- **All of the above need `ANTHROPIC_API_KEY` in `backend/.env` and the backend running.** The mobile side has been verified end to end against a stub that returns the real response shapes; the live Claude calls themselves haven't been exercised yet (no key was available), so expect to tune prompts once you run them.
+- **Still mocked / local-only:** budget-mode store prices (derived from the model's price estimate, not live prices), the savings tracker history, and the community feed, post detail, compose, and saved recipes (no multi-user backend or persistence). Settings/Log out are UI-only — there's no real auth yet.
 
 See [docs/mvp-scope.md](docs/mvp-scope.md) for the full breakdown of what's real vs. mocked.
 
@@ -29,10 +28,10 @@ npm install
 npm run dev
 ```
 
-Smoke-test the Claude integration directly (no mobile app needed):
+Smoke-test the Claude integration directly (no mobile app needed). It plans a recipe from a sample kitchen list and imports a sample recipe; pass a photo path to also exercise the scan:
 ```bash
 cd backend
-npm run smoke-test
+npm run smoke-test -- ./fridge.jpg   # photo is optional
 ```
 
 **Mobile app:**
@@ -44,4 +43,8 @@ npm start
 
 Then press `i` for iOS simulator, `a` for Android emulator, or `w` for a web preview (works without Xcode/Android Studio — useful for quick UI iteration). The web preview renders the app inside a fixed 402×874 phone-shaped frame centered on the page, matching the design prototype's own device frame — this only affects the browser preview, not the real app, which already fills the actual device's screen on iOS/Android.
 
-Once the scan flow is wired to the backend, update `API_BASE_URL` in `mobile/src/api/client.ts` to your machine's LAN IP (not `localhost`) when running on a physical device or simulator.
+The app talks to `http://localhost:3000` by default. On a physical device or simulator, point it at your machine's LAN IP instead (localhost won't resolve from there):
+```bash
+EXPO_PUBLIC_API_URL=http://192.168.1.x:3000 npm start
+```
+On a phone, "Photo of the fridge" opens the camera; in the web preview it opens a file picker.

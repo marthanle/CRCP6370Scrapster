@@ -1,15 +1,20 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { PrimaryButton, StatTile } from "../components/ui";
 import { colors, font, radius } from "../theme";
-import { DEMO_RECIPE } from "../data/demoRecipe";
+import { RecipePlan } from "../types";
 
 interface Props {
+  recipe: RecipePlan | null;
+  loading: boolean;
+  error: string | null;
+  stats: { used: number; atRisk: number; missingTotal: number } | null;
+  onRetry: () => void;
   onBack: () => void;
   onGoBudget: () => void;
   onGoRecipe: () => void;
 }
 
-export default function ResultScreen({ onBack, onGoBudget, onGoRecipe }: Props) {
+export default function ResultScreen({ recipe, loading, error, stats, onRetry, onBack, onGoBudget, onGoRecipe }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.container} bounces={false}>
       <View style={styles.hero}>
@@ -20,34 +25,57 @@ export default function ResultScreen({ onBack, onGoBudget, onGoRecipe }: Props) 
       </View>
 
       <View style={styles.sheet}>
-        <Text style={styles.eyebrow}>Tonight, decided</Text>
-        <Text style={styles.title}>{DEMO_RECIPE.title}</Text>
-        <Text style={styles.body}>{DEMO_RECIPE.usesLine}</Text>
+        {loading && (
+          <View style={styles.statusBox}>
+            <ActivityIndicator color={colors.primary} />
+            <Text style={styles.eyebrow}>Deciding dinner</Text>
+            <Text style={styles.statusText}>Looking at what's about to go and picking one dish that catches the most of it…</Text>
+          </View>
+        )}
 
-        <View style={styles.statRow}>
-          <StatTile value={String(DEMO_RECIPE.minutes)} label="minutes" />
-          <StatTile value={DEMO_RECIPE.usedUp} label="used up" />
-          <StatTile
-            value={DEMO_RECIPE.missingIngredient.price}
-            label="to finish"
-            onPress={onGoBudget}
-          />
-        </View>
+        {error && !loading && (
+          <View style={styles.statusBox}>
+            <Text style={styles.errorText}>{error}</Text>
+            <PrimaryButton label="Try again" onPress={onRetry} style={{ alignSelf: "stretch" }} />
+          </View>
+        )}
 
-        <PrimaryButton label="Start cooking" onPress={onGoRecipe} style={{ marginBottom: 18 }} />
+        {recipe && stats && !loading && (
+          <>
+            <Text style={styles.eyebrow}>Tonight, decided</Text>
+            <Text style={styles.title}>{recipe.title}</Text>
+            <Text style={styles.body}>{recipe.why}</Text>
 
-        <View style={styles.altHeader}>
-          <Text style={styles.altHeaderLabel}>Not feeling it?</Text>
-          <Text style={styles.altHeaderLink}>{DEMO_RECIPE.alternates.length} others ⌄</Text>
-        </View>
-        <View style={styles.altRow}>
-          {DEMO_RECIPE.alternates.map((alt) => (
-            <View key={alt.title} style={styles.altCard}>
-              <Text style={styles.altTitle}>{alt.title}</Text>
-              <Text style={styles.altMeta}>{alt.meta}</Text>
+            <View style={styles.statRow}>
+              <StatTile value={String(recipe.minutes)} label="minutes" />
+              <StatTile value={`${stats.used}/${stats.atRisk}`} label="used up" />
+              {recipe.missing.length > 0 ? (
+                <StatTile value={`$${stats.missingTotal.toFixed(2)}`} label="to finish" onPress={onGoBudget} />
+              ) : (
+                <StatTile value="$0" label="to buy" />
+              )}
             </View>
-          ))}
-        </View>
+
+            <PrimaryButton label="Start cooking" onPress={onGoRecipe} style={{ marginBottom: 18 }} />
+
+            {recipe.alternates.length > 0 && (
+              <>
+                <View style={styles.altHeader}>
+                  <Text style={styles.altHeaderLabel}>Not feeling it?</Text>
+                  <Text style={styles.altHeaderLink}>{recipe.alternates.length} others</Text>
+                </View>
+                <View style={styles.altRow}>
+                  {recipe.alternates.map((alt) => (
+                    <View key={alt.title} style={styles.altCard}>
+                      <Text style={styles.altTitle}>{alt.title}</Text>
+                      <Text style={styles.altMeta}>{alt.meta}</Text>
+                    </View>
+                  ))}
+                </View>
+              </>
+            )}
+          </>
+        )}
       </View>
     </ScrollView>
   );
@@ -66,9 +94,12 @@ const styles = StyleSheet.create({
   },
   backBtnText: { fontSize: 16 },
   sheet: {
-    padding: 22, marginTop: -26, backgroundColor: colors.background,
+    padding: 22, marginTop: -26, backgroundColor: colors.background, minHeight: 360,
     borderTopLeftRadius: radius.xxl, borderTopRightRadius: radius.xxl,
   },
+  statusBox: { alignItems: "center", gap: 12, paddingVertical: 20 },
+  statusText: { fontFamily: font.regular, fontSize: 14, lineHeight: 21, color: colors.textMuted, textAlign: "center" },
+  errorText: { fontFamily: font.medium, fontSize: 14, lineHeight: 21, color: colors.urgentToday, textAlign: "center" },
   eyebrow: {
     fontFamily: font.medium, fontSize: 11, letterSpacing: 1.3, textTransform: "uppercase",
     color: colors.primary, marginBottom: 8,

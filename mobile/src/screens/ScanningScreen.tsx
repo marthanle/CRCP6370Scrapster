@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import { colors, font } from "../theme";
-import { ScanSourceData } from "../types/pantry";
+import { ScanMeta } from "../data/scanSources";
 
 interface Props {
-  source: ScanSourceData;
+  source: ScanMeta;
   pantryCount: number;
 }
 

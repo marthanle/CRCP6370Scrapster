@@ -6,6 +6,10 @@ interface Props {
   pantryCount: number;
   pantrySummary: string;
   cookbookSummary: string;
+  monthSavedLabel: string;
+  monthItems: number;
+  scanError: string | null;
+  onDismissScanError: () => void;
   hasUrgent: boolean;
   urgentBadge: string;
   urgentLine: string;
@@ -31,6 +35,10 @@ export default function HomeScreen({
   pantryCount,
   pantrySummary,
   cookbookSummary,
+  monthSavedLabel,
+  monthItems,
+  scanError,
+  onDismissScanError,
   hasUrgent,
   urgentBadge,
   urgentLine,
@@ -63,8 +71,8 @@ export default function HomeScreen({
       <TouchableOpacity activeOpacity={0.85} style={styles.savedCard} onPress={onGoTracker}>
         <Text style={styles.savedLabel}>Saved this month</Text>
         <View style={styles.savedRow}>
-          <Text style={styles.savedAmount}>$32.10</Text>
-          <Text style={styles.savedItems}>9 items{"\n"}rescued</Text>
+          <Text style={styles.savedAmount}>{monthSavedLabel}</Text>
+          <Text style={styles.savedItems}>{monthItems} items{"\n"}rescued</Text>
         </View>
         <View style={styles.savedBarRow}>
           <View style={[styles.savedBarSeg, { flex: 3, backgroundColor: colors.onPrimaryMuted }]} />
@@ -95,6 +103,13 @@ export default function HomeScreen({
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
       </View>
+
+      {scanError && (
+        <TouchableOpacity activeOpacity={0.85} style={styles.errorBanner} onPress={onDismissScanError}>
+          <Text style={styles.errorBannerText}>{scanError}</Text>
+          <Text style={styles.errorBannerDismiss}>✕</Text>
+        </TouchableOpacity>
+      )}
 
       <Text style={styles.sectionTitle}>Add what you got</Text>
       <Text style={styles.sectionSubtitle}>
@@ -202,6 +217,12 @@ const styles = StyleSheet.create({
     borderStyle: "dashed", padding: 14, alignItems: "center",
   },
   typeItInText: { fontFamily: font.medium, fontSize: 14, color: colors.textMuted },
+  errorBanner: {
+    backgroundColor: colors.amberBg, borderWidth: 1, borderColor: colors.amberBorder,
+    borderRadius: radius.md, padding: 13, flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 16,
+  },
+  errorBannerText: { flex: 1, fontFamily: font.medium, fontSize: 13, lineHeight: 19, color: colors.urgentToday },
+  errorBannerDismiss: { fontSize: 13, color: colors.textFaint },
   urgentBanner: {
     backgroundColor: colors.amberBg, borderWidth: 1, borderColor: colors.amberBorder,
     borderRadius: radius.md, padding: 14, flexDirection: "row", alignItems: "center", gap: 12,

@@ -1,25 +1,37 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { PrimaryButton, TextButton } from "../components/ui";
 import { colors, font, radius } from "../theme";
-import { DEMO_RECIPE } from "../data/demoRecipe";
+import { RecipeMissing } from "../types";
 
 interface Props {
+  missing: RecipeMissing[];
   onBack: () => void;
   onSkipAndCook: () => void;
 }
 
-export default function BudgetScreen({ onBack, onSkipAndCook }: Props) {
+function money(n: number) {
+  return `$${n.toFixed(2)}`;
+}
+
+export default function BudgetScreen({ missing, onBack, onSkipAndCook }: Props) {
+  const total = missing.reduce((a, m) => a + m.estPrice, 0);
+  const names = missing.map((m) => m.name).join(" and ");
+  const options = [
+    { name: "Dollar Market", price: money(total), meta: "4 min walk · open till 11", best: true },
+    { name: "Campus Grocer", price: money(total * 2), meta: "In your building · meal-card accepted", best: false },
+    { name: "Delivery", price: `${money(total * 1.85)} + fee`, meta: `25 min · not worth it for ${missing.length === 1 ? "one thing" : "this little"}`, best: false },
+  ];
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <TextButton label="← Back" onPress={onBack} />
       <Text style={styles.title}>Budget mode</Text>
       <Text style={styles.subtitle}>
-        One {DEMO_RECIPE.missingIngredient.name} stands between you and dinner. Cheapest way to get
-        it — or skip it.
+        {names ? `${names.charAt(0).toUpperCase()}${names.slice(1)} ${missing.length === 1 ? "stands" : "stand"} between you and dinner. Cheapest way to get ${missing.length === 1 ? "it" : "them"} — or skip.` : "You have everything you need."}
       </Text>
 
-      <View style={{ gap: 9, marginBottom: 18 }}>
-        {DEMO_RECIPE.budgetOptions.map((opt) => (
+      <View style={{ gap: 9, marginBottom: 12 }}>
+        {options.map((opt) => (
           <View key={opt.name} style={[styles.option, opt.best && styles.optionBest]}>
             <View style={styles.optionHeader}>
               <Text style={[styles.optionName, opt.best && styles.optionNameBest]}>{opt.name}</Text>
@@ -29,10 +41,15 @@ export default function BudgetScreen({ onBack, onSkipAndCook }: Props) {
           </View>
         ))}
       </View>
+      <Text style={styles.footnote}>Prices are estimates, not live store prices.</Text>
 
       <View style={styles.altBox}>
         <Text style={styles.altTitle}>Or buy nothing</Text>
-        <Text style={styles.altBody}>A splash of any vinegar works. Slightly less bright, still dinner.</Text>
+        {missing.map((m) => (
+          <Text key={m.name} style={styles.altBody}>
+            {missing.length > 1 ? `${m.name}: ` : ""}{m.substitute || "Skip it — it'll still be dinner."}
+          </Text>
+        ))}
       </View>
 
       <PrimaryButton label="Skip it, cook anyway" onPress={onSkipAndCook} />
@@ -55,7 +72,8 @@ const styles = StyleSheet.create({
   optionPrice: { fontFamily: font.semibold, fontSize: 15, color: colors.text },
   optionPriceBest: { fontFamily: font.bold, fontSize: 15.5, color: colors.primary },
   optionMeta: { fontFamily: font.regular, fontSize: 12.5, color: colors.textMuted },
-  altBox: { backgroundColor: colors.primaryTint, borderRadius: radius.md, padding: 16, marginBottom: 18 },
-  altTitle: { fontFamily: font.bold, fontSize: 14.5, color: colors.primary, marginBottom: 5 },
+  footnote: { fontFamily: font.regular, fontSize: 11.5, color: colors.textFaint, marginBottom: 18 },
+  altBox: { backgroundColor: colors.primaryTint, borderRadius: radius.md, padding: 16, marginBottom: 18, gap: 4 },
+  altTitle: { fontFamily: font.bold, fontSize: 14.5, color: colors.primary, marginBottom: 1 },
   altBody: { fontFamily: font.regular, fontSize: 13.5, lineHeight: 20, color: colors.primaryTintText },
 });

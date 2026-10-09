@@ -1,7 +1,7 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { PrimaryButton, TextButton } from "../components/ui";
 import { colors, font, radius } from "../theme";
-import { ScanSourceData } from "../types/pantry";
+import { ScanMeta } from "../data/scanSources";
 
 interface PendingRow {
   name: string;
@@ -18,7 +18,7 @@ interface PendingRow {
 }
 
 interface Props {
-  source: ScanSourceData;
+  source: ScanMeta;
   pending: PendingRow[];
   hasDupes: boolean;
   dupeCount: number;

@@ -38,18 +38,28 @@ First-apartment kitchen: stove + oven available (not dorm-only microwave/mini-fr
 
 ## Implementation status
 
-- **Mobile UI (all 11 screens):** built in `mobile/src/screens/`, ported from the Claude Design
-  prototype's exact interaction model (see `mobile/src/hooks/useScrapsterState.ts`). Currently runs
-  on **mock data** — the scan flow uses the prototype's canned fridge/receipt/pantry datasets
-  (`mobile/src/data/scanSources.ts`) and the recipe screens show a fixed demo dish
-  (`mobile/src/data/demoRecipe.ts`), matching how the design prototype itself worked.
-- **Backend AI integration:** `backend/src/claude.ts` already implements real photo/list →
-  ingredient parsing + urgency ranking + recipe generation via Claude (`claude-opus-5`,
-  `messages.parse()` with a zod schema). It is **not yet wired** into the mobile app's scan/result
-  flow — that's the next integration step (replace `SCAN_SOURCES`/`DEMO_RECIPE` with real
-  `analyzeIngredients()` calls once a photo is taken).
-- **Login/auth, budget-mode pricing, and the savings tracker's historical data** are still
-  UI-only/mocked — no real auth, grocery-price lookup, or persistent savings ledger exists yet.
+- **Core loop is wired to the backend.** Scan (`POST /api/scan`: photo of fridge/pantry/receipt →
+  items with name, quantity, days-left, and the cue behind the estimate) feeds the review/merge
+  screen; "Cook from this list" calls `POST /api/recipe` (kitchen list + diet + allergies → one
+  committed dish with per-item usage and leftover quantities, missing items with price estimate
+  and substitute, steps, rescued value, alternates, and a next-meal idea). Result, Budget, Recipe,
+  and Cooked all render that response; Mark as cooked consumes/reduces kitchen items from the
+  recipe's `uses` and adds the rescued value to this month's total. Allergies are a hard filter:
+  the server checks the whole plan and retries once before returning a 422, which the app shows
+  as a plain-language message. Backend code: `backend/src/claude.ts`, routes in
+  `backend/src/index.ts`; client in `mobile/src/api/client.ts`.
+- **What's verified and what isn't.** The mobile flow (real image picker → request → confirm →
+  result → recipe → cooked, plus the unreachable-server error and retry) was exercised end to end
+  against a stub server returning the real response shapes. The live Claude calls (scan accuracy,
+  recipe quality, the allergy retry) have **not** been run — no API key was available. First
+  thing to do with a key: `cd backend && npm run smoke-test -- ./some-fridge-photo.jpg`, then tune
+  the prompts in `claude.ts`.
+- **Login/auth, store prices, and the savings tracker's history** are still UI-only/mocked. Budget
+  mode's three stores are derived from the model's price estimate for the missing items (and say
+  so on screen) — there is no grocery-price source. The tracker's lifetime/monthly chart data is
+  placeholder (`mobile/src/data/trackerData.ts`); only this month's total moves when you cook.
+  The kitchen list, month total, and everything else reset on app reload — nothing is persisted
+  yet.
 - **Community feed, post detail, compose, and saved recipes:** all fully built and interactive —
   sort/filter, comments, likes, saving a recipe from a post or an import, the compose flow's live
   savings preview — but entirely **local-state only** (`mobile/src/data/communityFeed.ts` seeds 3

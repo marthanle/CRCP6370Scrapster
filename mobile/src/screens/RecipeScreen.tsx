@@ -1,9 +1,10 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Pill, PrimaryButton } from "../components/ui";
 import { colors, font, radius } from "../theme";
-import { DEMO_RECIPE } from "../data/demoRecipe";
+import { RecipePlan } from "../types";
 
 interface Props {
+  recipe: RecipePlan;
   doneMap: Record<number, boolean>;
   doneLabel: string;
   onToggleStep: (index: number) => void;
@@ -13,6 +14,7 @@ interface Props {
 }
 
 export default function RecipeScreen({
+  recipe,
   doneMap,
   doneLabel,
   onToggleStep,
@@ -20,7 +22,7 @@ export default function RecipeScreen({
   onGoBudget,
   onMarkCooked,
 }: Props) {
-  const firstOpen = DEMO_RECIPE.steps.findIndex((_, i) => !doneMap[i]);
+  const firstOpen = recipe.steps.findIndex((_, i) => !doneMap[i]);
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -31,25 +33,28 @@ export default function RecipeScreen({
         <Text style={styles.doneLabel}>{doneLabel}</Text>
       </View>
 
-      <Text style={styles.title}>{DEMO_RECIPE.title}</Text>
+      <Text style={styles.title}>{recipe.title}</Text>
 
       <View style={styles.tagCard}>
         <Text style={styles.tagCardTitle}>Pulled from your kitchen list</Text>
         <View style={styles.tagWrap}>
-          {DEMO_RECIPE.tags.map((tag) => (
-            <Pill key={tag} label={tag} bg={colors.primaryTint} fg={colors.primary} />
+          {recipe.uses.map((u) => (
+            <Pill key={u.pantryName} label={`${u.pantryName.toLowerCase()} ${u.qtyUsed}`.trim()} bg={colors.primaryTint} fg={colors.primary} />
           ))}
-          <Pill
-            label={`${DEMO_RECIPE.missingIngredient.name} · ${DEMO_RECIPE.missingIngredient.price}`}
-            bg={colors.keepBg}
-            fg={colors.amberLabel}
-            onPress={onGoBudget}
-          />
+          {recipe.missing.map((m) => (
+            <Pill
+              key={m.name}
+              label={`${m.name} · $${m.estPrice.toFixed(2)}`}
+              bg={colors.keepBg}
+              fg={colors.amberLabel}
+              onPress={onGoBudget}
+            />
+          ))}
         </View>
       </View>
 
       <View style={{ gap: 9, marginBottom: 16 }}>
-        {DEMO_RECIPE.steps.map((text, i) => {
+        {recipe.steps.map((text, i) => {
           const on = !!doneMap[i];
           const isFirstOpen = i === firstOpen;
           return (

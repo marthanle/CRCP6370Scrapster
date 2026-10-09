@@ -1,54 +1,64 @@
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { PrimaryButton, ProgressBar } from "../components/ui";
 import { colors, font, radius } from "../theme";
-import { DEMO_RECIPE } from "../data/demoRecipe";
+import { RecipePlan } from "../types";
 
 interface Props {
+  recipe: RecipePlan;
+  leftovers: string[];
+  monthSavedLabel: string;
+  monthPct: number;
   onBackHome: () => void;
   onShare: () => void;
   hasShared: boolean;
 }
 
-export default function CookedScreen({ onBackHome, onShare, hasShared }: Props) {
+export default function CookedScreen({ recipe, leftovers, monthSavedLabel, monthPct, onBackHome, onShare, hasShared }: Props) {
+  const cleared = recipe.uses.filter((u) => !u.leftoverQty).map((u) => u.pantryName.toLowerCase());
   return (
     <ScrollView contentContainerStyle={styles.container} bounces={false}>
       <View style={styles.top}>
         <Text style={styles.eyebrow}>Nothing binned tonight</Text>
-        <Text style={styles.amount}>{DEMO_RECIPE.cookedSavings}</Text>
-        <Text style={styles.line}>{DEMO_RECIPE.cookedLine}</Text>
+        <Text style={styles.amount}>{`+$${recipe.rescuedValue.toFixed(2)}`}</Text>
+        <Text style={styles.line}>That's {recipe.uses.length} ingredient{recipe.uses.length === 1 ? "" : "s"} rescued and one dinner you didn't have to think about.</Text>
 
         <View style={styles.monthCard}>
           <View style={styles.monthRow}>
             <Text style={styles.monthLabel}>This month</Text>
-            <Text style={styles.monthValue}>$35.60</Text>
+            <Text style={styles.monthValue}>{monthSavedLabel}</Text>
           </View>
-          <ProgressBar pct={71} trackColor="rgba(255,255,255,0.2)" fillColor={colors.accentLime} />
+          <ProgressBar pct={monthPct} trackColor="rgba(255,255,255,0.2)" fillColor={colors.accentLime} />
         </View>
       </View>
 
       <View style={styles.sheet}>
         <Text style={styles.sheetTitle}>Kitchen list updated</Text>
         <Text style={styles.sheetSubtitle}>
-          Spinach, rice and scallions cleared. Three leftovers logged for tomorrow.
+          {cleared.length > 0 ? `${cleared.join(", ")} cleared. ` : ""}
+          {leftovers.length > 0
+            ? `${leftovers.length} leftover${leftovers.length === 1 ? "" : "s"} logged for tomorrow.`
+            : "Nothing left over."}
         </Text>
 
         <View style={styles.leftoverRow}>
-          {DEMO_RECIPE.leftovers.map((item) => (
+          {leftovers.map((item) => (
             <View key={item} style={styles.leftoverChip}>
               <Text style={styles.leftoverChipText}>{item}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.mealRow}>
-          <View style={styles.mealBadge}>
-            <Text style={styles.mealBadgeText}>{DEMO_RECIPE.nextMeal.day}</Text>
+        {recipe.nextMeal && (
+          <View style={styles.mealRow}>
+            <View style={styles.mealBadge}>
+              <Text style={styles.mealBadgeText}>NEXT</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.mealTitle}>{recipe.nextMeal.title}</Text>
+              <Text style={styles.mealMeta}>{recipe.nextMeal.meta}</Text>
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.mealTitle}>{DEMO_RECIPE.nextMeal.title}</Text>
-            <Text style={styles.mealMeta}>{DEMO_RECIPE.nextMeal.meta}</Text>
-          </View>
-        </View>
+        )}
 
         <View style={styles.upsellRow}>
           <View style={styles.upsellBadge}>

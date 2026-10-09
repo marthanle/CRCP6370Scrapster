@@ -1,15 +1,17 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { Card, Pill, PrimaryButton, TextButton } from "../components/ui";
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pill, PrimaryButton, TextButton } from "../components/ui";
 import { colors, font } from "../theme";
 
 interface Props {
   diets: Array<{ label: string; on: boolean }>;
   onToggleDiet: (label: string) => void;
+  allergies: string;
+  onAllergiesChange: (text: string) => void;
   onContinue: () => void;
   onSkip: () => void;
 }
 
-export default function DietScreen({ diets, onToggleDiet, onContinue, onSkip }: Props) {
+export default function DietScreen({ diets, onToggleDiet, allergies, onAllergiesChange, onContinue, onSkip }: Props) {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.progressRow}>
@@ -36,9 +38,14 @@ export default function DietScreen({ diets, onToggleDiet, onContinue, onSkip }: 
       </View>
 
       <Text style={styles.fieldTitle}>Allergies</Text>
-      <Card style={styles.allergyField}>
-        <Text style={styles.allergyPlaceholder}>Peanuts, shellfish…</Text>
-      </Card>
+      <TextInput
+        style={styles.allergyField}
+        placeholder="Peanuts, shellfish…"
+        placeholderTextColor={colors.textFaint}
+        value={allergies}
+        onChangeText={onAllergiesChange}
+        autoCapitalize="none"
+      />
       <View style={styles.notice}>
         <Text style={styles.noticeText}>
           Allergies are hard filters — anything listed here is never suggested, even from a photo match.
@@ -79,8 +86,11 @@ const styles = StyleSheet.create({
   },
   chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 26 },
   fieldTitle: { fontFamily: font.bold, fontSize: 16, color: colors.text, marginBottom: 10 },
-  allergyField: { marginBottom: 11, paddingVertical: 14 },
-  allergyPlaceholder: { fontFamily: font.regular, fontSize: 15, color: colors.textFaint },
+  allergyField: {
+    backgroundColor: colors.card, borderRadius: 14, paddingHorizontal: 15, paddingVertical: 14,
+    fontFamily: font.regular, fontSize: 15, color: colors.text, marginBottom: 11,
+    shadowColor: "#14171A", shadowOpacity: 0.07, shadowRadius: 2, shadowOffset: { width: 0, height: 1 }, elevation: 1,
+  },
   notice: {
     backgroundColor: colors.amberBg,
     borderWidth: 1,

@@ -62,6 +62,8 @@ export default function App() {
           <DietScreen
             diets={s.diets}
             onToggleDiet={s.toggleDiet}
+            allergies={s.allergies}
+            onAllergiesChange={s.setAllergies}
             onContinue={() => s.go("home")}
             onSkip={() => s.go("home")}
           />
@@ -71,6 +73,10 @@ export default function App() {
             pantryCount={s.pantryCount}
             pantrySummary={s.pantrySummary}
             cookbookSummary={s.cookbookSummary}
+            monthSavedLabel={s.monthSavedLabel}
+            monthItems={s.monthItems}
+            scanError={s.scanError}
+            onDismissScanError={s.clearScanError}
             hasUrgent={s.hasUrgent}
             urgentBadge={s.urgentBadge}
             urgentLine={s.urgentLine}
@@ -81,7 +87,7 @@ export default function App() {
             onScanFridge={() => s.scan("fridge")}
             onScanReceipt={() => s.scan("receipt")}
             onScanPantry={() => s.scan("pantry")}
-            onGoResult={() => s.go("result")}
+            onGoResult={() => s.cook()}
             onImportRecipe={() => s.go("import")}
           />
         )}
@@ -102,15 +108,15 @@ export default function App() {
             soonItems={s.soonItems}
             keepItems={s.keepItems}
             onRemove={s.removeFromPantry}
-            onCook={() => s.go("result")}
+            onCook={() => s.cook()}
           />
         )}
         {s.screen === "scanning" && (
-          <ScanningScreen source={s.activeSourceData} pantryCount={s.pantryCount} />
+          <ScanningScreen source={s.scanMeta} pantryCount={s.pantryCount} />
         )}
         {s.screen === "confirm" && (
           <ConfirmScreen
-            source={s.activeSourceData}
+            source={s.scanMeta}
             pending={s.pending}
             hasDupes={s.hasDupes}
             dupeCount={s.dupeCount}
@@ -122,16 +128,22 @@ export default function App() {
         )}
         {s.screen === "result" && (
           <ResultScreen
+            recipe={s.recipe}
+            loading={s.recipeLoading}
+            error={s.recipeError}
+            stats={s.recipeStats}
+            onRetry={s.retryCook}
             onBack={() => s.go("home")}
             onGoBudget={() => s.go("budget")}
             onGoRecipe={() => s.go("recipe")}
           />
         )}
-        {s.screen === "budget" && (
-          <BudgetScreen onBack={() => s.go("result")} onSkipAndCook={() => s.go("recipe")} />
+        {s.screen === "budget" && s.recipe && (
+          <BudgetScreen missing={s.recipe.missing} onBack={() => s.go("result")} onSkipAndCook={() => s.go("recipe")} />
         )}
-        {s.screen === "recipe" && (
+        {s.screen === "recipe" && s.recipe && (
           <RecipeScreen
+            recipe={s.recipe}
             doneMap={s.doneMap}
             doneLabel={s.doneLabel}
             onToggleStep={s.toggleStepDone}
@@ -140,8 +152,12 @@ export default function App() {
             onMarkCooked={s.markCooked}
           />
         )}
-        {s.screen === "cooked" && (
+        {s.screen === "cooked" && s.recipe && (
           <CookedScreen
+            recipe={s.recipe}
+            leftovers={s.cookedLeftovers}
+            monthSavedLabel={s.monthSavedLabel}
+            monthPct={s.monthPct}
             onBackHome={() => s.go("home")}
             onShare={s.shareToCommunity}
             hasShared={s.hasSharedCurrent}

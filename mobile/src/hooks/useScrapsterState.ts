@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { colors } from "../theme";
-import { SCAN_SOURCES } from "../data/scanSources";
+import { SCAN_META } from "../data/scanSources";
 import { SEED_COMMUNITY_POSTS } from "../data/communityFeed";
-import { DEMO_RECIPE } from "../data/demoRecipe";
 import { priceOf } from "../data/priceTable";
-import { importRecipe } from "../api/client";
+import { ApiError, importRecipe, planRecipe, scanPhoto } from "../api/client";
+import { PhotoPermissionError, pickPhoto } from "../photoPicker";
+import { RecipePlan, ScannedItem } from "../types";
 import {
   CommunityPost,
   CookbookFilter,
@@ -37,10 +38,15 @@ const DIET_LABELS = [
   "Dairy-free",
 ];
 
-const RECIPE_STEP_COUNT = 4;
+const MONTH_GOAL = 50;
 
-const EATEN_ON_COOK = ["rice, cooked", "baby spinach", "scallions"];
-const REDUCED_ON_COOK: Record<string, string> = { feta: "½ block", eggs: "1" };
+function norm(s: string) {
+  return s.toLowerCase().trim();
+}
+
+function parseAllergies(text: string): string[] {
+  return text.split(/[,\n]/).map((t) => t.trim()).filter(Boolean);
+}
 
 const SORTS: Array<{ key: FeedSortKey; label: string; sub: string }> = [
   { key: "match", label: "Best match", sub: "Uses the most of your kitchen" },
@@ -118,6 +124,16 @@ export function useScrapsterState() {
   const [pantry, setPantry] = useState<PantryItem[]>(INITIAL_PANTRY);
   const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>(SEED_COMMUNITY_POSTS);
   const [hasSharedCurrent, setHasSharedCurrent] = useState(false);
+  const [allergies, setAllergies] = useState("");
+
+  const [scanFound, setScanFound] = useState<ScannedItem[]>([]);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [recipe, setRecipe] = useState<RecipePlan | null>(null);
+  const [recipeLoading, setRecipeLoading] = useState(false);
+  const [recipeError, setRecipeError] = useState<string | null>(null);
+  const recipeKeyRef = useRef("");
+  const [monthSaved, setMonthSaved] = useState(32.1);
+  const [monthItems, setMonthItems] = useState(9);
 
   const [importLoading, setImportLoading] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
@@ -137,26 +153,46 @@ export function useScrapsterState() {
   const [composePicks, setComposePicks] = useState<Record<number, boolean>>({});
 
   const nextIdRef = useRef(7);
-  const scanTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => () => {
-    if (scanTimer.current) clearTimeout(scanTimer.current);
-  }, []);
 
   const go = useCallback((next: Screen) => setScreen(next), []);
 
-  const scan = useCallback((src: ScanSourceKey) => {
-    const found = SCAN_SOURCES[src].found;
-    const actions: Record<number, PendingAction> = {};
-    found.forEach((f, i) => {
-      const isDup = pantry.some((p) => p.name.toLowerCase() === f.name.toLowerCase());
-      actions[i] = isDup ? "merge" : "add";
-    });
+  const scan = useCallback(async (src: ScanSourceKey) => {
+    setScanError(null);
+    let photo;
+    try {
+      photo = await pickPhoto();
+    } catch (err) {
+      setScanError(err instanceof PhotoPermissionError ? err.message : "I couldn't open the camera.");
+      setScreen("home");
+      return;
+    }
+    if (!photo) return; // cancelled: stay where you were
+
     setSource(src);
-    setPendingActions(actions);
     setScreen("scanning");
-    if (scanTimer.current) clearTimeout(scanTimer.current);
-    scanTimer.current = setTimeout(() => setScreen("confirm"), 2100);
+    try {
+      const { items } = await scanPhoto({
+        photoBase64: photo.base64,
+        mediaType: photo.mediaType,
+        source: src,
+      });
+      if (items.length === 0) {
+        setScanError("I couldn't find any food in that photo. Try a clearer shot.");
+        setScreen("home");
+        return;
+      }
+      const actions: Record<number, PendingAction> = {};
+      items.forEach((f, i) => {
+        const isDup = pantry.some((p) => norm(p.name) === norm(f.name));
+        actions[i] = isDup ? "merge" : "add";
+      });
+      setScanFound(items);
+      setPendingActions(actions);
+      setScreen("confirm");
+    } catch (err) {
+      setScanError(err instanceof ApiError ? err.message : "Something went wrong reading that photo.");
+      setScreen("home");
+    }
   }, [pantry]);
 
   const cyclePendingAction = useCallback((index: number, isDup: boolean) => {
@@ -169,10 +205,10 @@ export function useScrapsterState() {
   }, []);
 
   const applyPending = useCallback(() => {
-    const src = SCAN_SOURCES[source];
+    const src = SCAN_META[source];
     let id = nextIdRef.current;
     const next = pantry.map((p) => ({ ...p }));
-    src.found.forEach((f, i) => {
+    scanFound.forEach((f, i) => {
       const action = pendingActions[i];
       if (action === "skip") return;
       const hit = next.find((p) => p.name.toLowerCase() === f.name.toLowerCase());
@@ -187,7 +223,7 @@ export function useScrapsterState() {
           qty: f.qty,
           days: f.days,
           src: src.label,
-          note: hit ? "kept separate" : null,
+          note: hit ? "kept separate" : f.note || null,
         });
       }
     });
@@ -195,7 +231,7 @@ export function useScrapsterState() {
     nextIdRef.current = id;
     setPantry(next);
     setScreen("pantry");
-  }, [pantry, pendingActions, source]);
+  }, [pantry, pendingActions, scanFound, source]);
 
   const removeFromPantry = useCallback((id: number) => {
     setPantry((prev) => prev.filter((p) => p.id !== id));
@@ -209,53 +245,76 @@ export function useScrapsterState() {
     setDone((prev) => ({ ...prev, [index]: !prev[index] }));
   }, []);
 
-  const markCooked = useCallback(() => {
-    let id = nextIdRef.current;
-    let next = pantry
-      .filter((p) => !EATEN_ON_COOK.includes(p.name.toLowerCase()))
-      .map((p) => {
-        const reduced = REDUCED_ON_COOK[p.name.toLowerCase()];
-        return reduced ? { ...p, qty: reduced, src: "Leftover · tonight" } : p;
+  const cook = useCallback(async (force = false) => {
+    setScreen("result");
+    const dietOn = DIET_LABELS.filter((l) => diet[l]);
+    const key = JSON.stringify([pantry.map((p) => [p.name, p.qty, p.days]), dietOn, allergies]);
+    if (!force && recipe && recipeKeyRef.current === key) return;
+
+    setRecipe(null);
+    setRecipeError(null);
+    setRecipeLoading(true);
+    try {
+      const plan = await planRecipe({
+        pantry: pantry.map((p) => ({ name: p.name, qty: p.qty.replace(/\s*\(updated\)$/, ""), days: p.days })),
+        diet: dietOn,
+        allergies: parseAllergies(allergies),
       });
-    if (!next.some((p) => p.name.toLowerCase() === "lemon")) {
-      next = [...next, { id: id++, name: "Lemon", qty: "½", days: 6, src: "Leftover · tonight" }];
+      recipeKeyRef.current = key;
+      setRecipe(plan);
+      setDone({});
+    } catch (err) {
+      setRecipeError(err instanceof ApiError ? err.message : "Something went wrong planning dinner.");
+    } finally {
+      setRecipeLoading(false);
     }
+  }, [allergies, diet, pantry, recipe]);
+
+  const markCooked = useCallback(() => {
+    if (!recipe) return;
+    const next = pantry.flatMap((p): PantryItem[] => {
+      const use = recipe.uses.find((u) => norm(u.pantryName) === norm(p.name));
+      if (!use) return [p];
+      if (!use.leftoverQty) return [];
+      return [{ ...p, qty: use.leftoverQty, src: "Leftover · tonight" }];
+    });
     next.sort((a, b) => a.days - b.days);
-    nextIdRef.current = id;
     setPantry(next);
+    setMonthSaved((m) => m + recipe.rescuedValue);
+    setMonthItems((n) => n + recipe.uses.length);
     setDone({});
     setHasSharedCurrent(false);
     setScreen("cooked");
-  }, [pantry]);
+  }, [pantry, recipe]);
 
   const shareToCommunity = useCallback(() => {
-    if (hasSharedCurrent) return;
+    if (hasSharedCurrent || !recipe) return;
+    const keyOf = (name: string) => norm(name).split(/[ ,]/)[0];
     const post: CommunityPost = {
       id: `me${Date.now()}`,
       author: "You",
       mine: true,
-      dish: DEMO_RECIPE.title,
-      saved: 3.5,
+      dish: recipe.title,
+      saved: recipe.rescuedValue,
       time: "just now",
       ageMinutes: 0,
       likes: 0,
       liked: false,
       comments: [],
-      tags: ["Baby spinach", "Rice, cooked", "Scallions"],
-      meta: "12 min · one pan · serves 1",
+      tags: recipe.uses.map((u) => u.pantryName),
+      meta: `${recipe.minutes} min`,
       ingredients: [
-        { text: "1 cup cooked rice", key: "rice" },
-        { text: "Big handful spinach", key: "spinach" },
-        { text: "2 eggs", key: "egg" },
-        { text: "¼ block feta", key: "feta" },
-        { text: "2 scallions", key: "scallion" },
-        { text: "½ lemon", key: "lemon" },
+        ...recipe.uses.map((u) => ({
+          text: `${u.qtyUsed} ${u.pantryName.toLowerCase()}`.trim(),
+          key: keyOf(u.pantryName),
+        })),
+        ...recipe.missing.map((m) => ({ text: m.name, key: keyOf(m.name) })),
       ],
-      steps: [...DEMO_RECIPE.steps],
+      steps: [...recipe.steps],
     };
     setCommunityPosts((prev) => [post, ...prev]);
     setHasSharedCurrent(true);
-  }, [hasSharedCurrent]);
+  }, [hasSharedCurrent, recipe]);
 
   const toggleLike = useCallback((id: string) => {
     setCommunityPosts((prev) =>
@@ -411,10 +470,10 @@ export function useScrapsterState() {
     [diet],
   );
 
-  const activeSourceData = SCAN_SOURCES[source];
+  const scanMeta = SCAN_META[source];
 
   const pending = useMemo(() => {
-    return activeSourceData.found.map((f, i) => {
+    return scanFound.map((f, i) => {
       const isDup = pantry.some((p) => p.name.toLowerCase() === f.name.toLowerCase());
       const action = pendingActions[i] ?? (isDup ? "merge" : "add");
       const b = band(f.days);
@@ -439,23 +498,23 @@ export function useScrapsterState() {
         index: i,
       };
     });
-  }, [activeSourceData, pantry, pendingActions]);
+  }, [scanFound, pantry, pendingActions]);
 
   const dupeCount = useMemo(
     () =>
-      activeSourceData.found.filter((f) =>
+      scanFound.filter((f) =>
         pantry.some((p) => p.name.toLowerCase() === f.name.toLowerCase()),
       ).length,
-    [activeSourceData, pantry],
+    [scanFound, pantry],
   );
 
   const newRowCount = useMemo(() => {
-    return activeSourceData.found.filter((f, i) => {
+    return scanFound.filter((f, i) => {
       const isDup = pantry.some((p) => p.name.toLowerCase() === f.name.toLowerCase());
       const a = pendingActions[i] ?? (isDup ? "merge" : "add");
       return a === "add" || a === "keep";
     }).length;
-  }, [activeSourceData, pantry, pendingActions]);
+  }, [scanFound, pantry, pendingActions]);
 
   function matchTarget(ing: OpenedRecipeIngredient) {
     return (ing.key ?? ing.name).toLowerCase().trim();
@@ -660,6 +719,24 @@ export function useScrapsterState() {
 
   const doneCount = Object.values(done).filter(Boolean).length;
 
+  const recipeStats = useMemo(() => {
+    if (!recipe) return null;
+    const atRisk = pantry.filter((p) => p.days <= 7).length;
+    return {
+      used: recipe.uses.length,
+      atRisk: Math.max(atRisk, recipe.uses.length),
+      missingTotal: recipe.missing.reduce((a, m) => a + m.estPrice, 0),
+    };
+  }, [recipe, pantry]);
+
+  const cookedLeftovers = useMemo(
+    () =>
+      (recipe?.uses ?? [])
+        .filter((u) => u.leftoverQty)
+        .map((u) => `${u.leftoverQty} ${u.pantryName.toLowerCase()}`),
+    [recipe],
+  );
+
   const dietSummary =
     (Object.keys(diet).filter((k) => diet[k]).join(", ") || "Nothing set") + " · no allergies";
 
@@ -681,7 +758,22 @@ export function useScrapsterState() {
     urgentLine: urgentItems.length ? `Your ${urgentNames} won't make the week.` : "",
     removeFromPantry,
     scan,
-    activeSourceData,
+    scanMeta,
+    scanError,
+    clearScanError: () => setScanError(null),
+    scanFoundCount: scanFound.length,
+    allergies,
+    setAllergies,
+    recipe,
+    recipeLoading,
+    recipeError,
+    cook,
+    retryCook: () => cook(true),
+    recipeStats,
+    cookedLeftovers,
+    monthSavedLabel: `$${monthSaved.toFixed(2)}`,
+    monthItems,
+    monthPct: Math.min(100, Math.round((monthSaved / MONTH_GOAL) * 100)),
     pending,
     cyclePendingAction,
     applyPending,
@@ -690,7 +782,7 @@ export function useScrapsterState() {
     confirmFooter: `Your kitchen list goes from ${pantry.length} to ${pantry.length + newRowCount} items.`,
     toggleStepDone,
     doneMap: done,
-    doneLabel: `${doneCount} of ${RECIPE_STEP_COUNT} done`,
+    doneLabel: `${doneCount} of ${recipe?.steps.length ?? 0} done`,
     markCooked,
     activeTab,
     showTabs,
