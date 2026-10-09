@@ -9,6 +9,7 @@ export const SEED_COMMUNITY_POSTS: CommunityPost[] = [
   {
     id: "p1",
     author: "Priya",
+    photo: require("../../assets/posts/priya-fried-rice.jpg"),
     dish: "Fried rice from three sad vegetables",
     saved: 4.8,
     time: "2h ago",
