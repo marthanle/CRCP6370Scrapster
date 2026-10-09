@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   // prototype's own device frame) instead of stretching to the browser's
   // full viewport height, which read as an oddly elongated card.
   container: isWeb
-    ? { width: 402, height: 874, maxHeight: "100%", backgroundColor: colors.background, borderRadius: 36, overflow: "hidden" }
+    ? { width: "100%", maxWidth: 402, height: 874, maxHeight: "100%", backgroundColor: colors.background, borderRadius: 36, overflow: "hidden" }
     : { flex: 1, backgroundColor: colors.background },
   content: { flex: 1 },
 });

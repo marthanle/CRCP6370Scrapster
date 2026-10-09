@@ -1,5 +1,11 @@
 import { ImportedRecipe, RecipePlan, ScannedItem } from "../types";
 import { ScanSourceKey } from "../types/pantry";
+import { staticImport, staticPlan, staticScan } from "./staticDemo";
+
+// Set EXPO_PUBLIC_STATIC_DEMO=1 for a build with no backend (the shareable web
+// artifact): scan, recipe and import answer from canned data on the device.
+const STATIC_DEMO = process.env.EXPO_PUBLIC_STATIC_DEMO === "1";
+const pause = () => new Promise((r) => setTimeout(r, 900));
 
 // Override with EXPO_PUBLIC_API_URL (e.g. http://192.168.1.x:3000) when running
 // on a physical device or simulator — localhost won't resolve from there.
@@ -46,6 +52,7 @@ export function scanPhoto(input: {
   mediaType: string;
   source: ScanSourceKey;
 }): Promise<{ items: ScannedItem[] }> {
+  if (STATIC_DEMO) return pause().then(() => ({ items: staticScan(input.source) }));
   return post("/api/scan", input, "I couldn't read that photo. Try another one.");
 }
 
@@ -54,9 +61,22 @@ export function planRecipe(input: {
   diet: string[];
   allergies: string[];
 }): Promise<RecipePlan> {
+  if (STATIC_DEMO) {
+    return pause().then(() => {
+      const plan = staticPlan(input);
+      if (!plan) {
+        throw new ApiError(
+          "I couldn't build a dinner from this list that avoids your allergies. Add a few more ingredients.",
+          "allergen_conflict",
+        );
+      }
+      return plan;
+    });
+  }
   return post("/api/recipe", input, "I couldn't come up with a recipe. Try again.");
 }
 
 export function importRecipe(url: string): Promise<ImportedRecipe> {
+  if (STATIC_DEMO) return pause().then(() => staticImport(url));
   return post("/api/import-recipe", { url }, "I couldn't import that recipe. Try a different link.");
 }
