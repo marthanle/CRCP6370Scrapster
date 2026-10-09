@@ -48,6 +48,11 @@ First-apartment kitchen: stove + oven available (not dorm-only microwave/mini-fr
   the server checks the whole plan and retries once before returning a 422, which the app shows
   as a plain-language message. Backend code: `backend/src/claude.ts`, routes in
   `backend/src/index.ts`; client in `mobile/src/api/client.ts`.
+- **Demo mode (`npm run dev:demo`, `DEMO_MODE=1`)** serves canned responses in the real shapes
+  (`backend/src/demo.ts`) so the app runs with no API key. The scan returns a fixed item set per
+  source; the recipe is assembled from the actual kitchen list (most urgent items, allergens
+  filtered, 422 if nothing is left); import matches a few URL keywords. It is for demos and UI
+  work, not a stand-in for evaluating the real model.
 - **What's verified and what isn't.** The mobile flow (real image picker → request → confirm →
   result → recipe → cooked, plus the unreachable-server error and retry) was exercised end to end
   against a stub server returning the real response shapes. The live Claude calls (scan accuracy,

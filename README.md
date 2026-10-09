@@ -28,6 +28,14 @@ npm install
 npm run dev
 ```
 
+**No API key? Use demo mode** — the backend returns canned scan, recipe, and import responses in the real shapes, so the whole app works without a key or any cost:
+```bash
+cd backend
+npm install
+npm run dev:demo
+```
+Demo output is deterministic and ignores the photo: the scan returns a fixed set of items per source (fridge / receipt / pantry), and the recipe is assembled from whatever is actually in your kitchen list (allergies are respected). Recipe import matches a few keywords in the URL (fried rice, pasta, frittata). `GET /api/health` reports `demoMode`.
+
 Smoke-test the Claude integration directly (no mobile app needed). It plans a recipe from a sample kitchen list and imports a sample recipe; pass a photo path to also exercise the scan:
 ```bash
 cd backend

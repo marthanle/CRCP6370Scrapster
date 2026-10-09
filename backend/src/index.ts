@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import { AllergenError, planRecipe, scanPhoto } from "./claude.js";
+import { demoDelay, demoImport, demoPlan, demoScan } from "./demo.js";
 import { importRecipeFromUrl } from "./recipeImport.js";
 import { SCAN_SOURCES, ScanSource } from "./schema.js";
 
@@ -15,12 +16,15 @@ function sendAiError(res: express.Response, err: unknown, fallback: string) {
   res.status(502).json({ error: fallback });
 }
 
+// DEMO_MODE=1 serves canned responses in the real shapes, so the app runs with no API key.
+const DEMO = process.env.DEMO_MODE === "1";
+
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "15mb" }));
 
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, aiConfigured: Boolean(process.env.ANTHROPIC_API_KEY) });
+  res.json({ ok: true, demoMode: DEMO, aiConfigured: DEMO || Boolean(process.env.ANTHROPIC_API_KEY) });
 });
 
 app.post("/api/scan", async (req, res) => {
@@ -32,6 +36,12 @@ app.post("/api/scan", async (req, res) => {
   }
   if (!SCAN_SOURCES.includes(source)) {
     res.status(400).json({ error: `source must be one of: ${SCAN_SOURCES.join(", ")}.` });
+    return;
+  }
+
+  if (DEMO) {
+    await demoDelay();
+    res.json(demoScan(source as ScanSource));
     return;
   }
 
@@ -68,6 +78,17 @@ app.post("/api/recipe", async (req, res) => {
   const strings = (v: unknown) =>
     Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
 
+  if (DEMO) {
+    await demoDelay();
+    const plan = demoPlan({ pantry, allergies: strings(allergies) });
+    if (plan === "allergen_conflict") {
+      res.status(422).json({ error: "allergen_conflict", message: "Nothing in this list avoids your allergies." });
+      return;
+    }
+    res.json(plan);
+    return;
+  }
+
   try {
     const plan = await planRecipe({
       pantry,
@@ -93,6 +114,12 @@ app.post("/api/import-recipe", async (req, res) => {
     return;
   }
 
+  if (DEMO) {
+    await demoDelay();
+    res.json(demoImport(url));
+    return;
+  }
+
   try {
     const result = await importRecipeFromUrl(url);
     res.json(result);
@@ -104,5 +131,5 @@ app.post("/api/import-recipe", async (req, res) => {
 
 const port = Number(process.env.PORT ?? 3000);
 app.listen(port, () => {
-  console.log(`Scrapster backend listening on http://localhost:${port}`);
+  console.log(`Scrapster backend listening on http://localhost:${port}${DEMO ? " (DEMO_MODE: canned responses, no API key needed)" : ""}`);
 });
