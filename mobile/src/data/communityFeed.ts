@@ -67,6 +67,7 @@ export const SEED_COMMUNITY_POSTS: CommunityPost[] = [
   {
     id: "p3",
     author: "Mei",
+    photo: require("../../assets/posts/mei-pasta-bake.jpg"),
     dish: "Whatever-was-left pasta bake",
     saved: 6.35,
     time: "1d ago",
