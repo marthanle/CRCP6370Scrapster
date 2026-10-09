@@ -160,6 +160,7 @@ export function useScrapsterState() {
   const [composePicks, setComposePicks] = useState<Record<number, boolean>>({});
   const [composePhotoUri, setComposePhotoUri] = useState<string | null>(null);
   const [composePhotoError, setComposePhotoError] = useState<string | null>(null);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
 
   const nextIdRef = useRef(7);
 
@@ -361,8 +362,28 @@ export function useScrapsterState() {
     setComposeSteps("");
     setComposePhotoUri(null);
     setComposePhotoError(null);
+    setEditingPostId(null);
     setScreen("compose");
   }, []);
+
+  const openEditPost = useCallback((post: CommunityPost) => {
+    const photo = post.photo;
+    setComposeDish(post.dish);
+    setComposeCaption(post.caption ?? "");
+    setComposeIngredients((post.ingredients ?? []).map((i) => i.text).join("\n"));
+    setComposeSteps((post.steps ?? []).join("\n"));
+    setComposePicks(
+      Object.fromEntries(pantry.filter((p) => post.tags?.includes(p.name)).map((p) => [p.id, true])),
+    );
+    setComposePhotoUri(
+      photo && typeof photo === "object" && !Array.isArray(photo) && "uri" in photo && photo.uri
+        ? photo.uri
+        : null,
+    );
+    setComposePhotoError(null);
+    setEditingPostId(post.id);
+    setScreen("compose");
+  }, [pantry]);
 
   const toggleComposePick = useCallback((id: number) => {
     setComposePicks((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -394,9 +415,22 @@ export function useScrapsterState() {
       liked: false,
       comments: [],
     };
+    if (editingPostId) {
+      // Editing keeps the post's identity, likes, comments and age; only the content changes.
+      setCommunityPosts((prev) =>
+        prev.map((p) =>
+          p.id === editingPostId
+            ? { ...p, dish, photo: post.photo, caption: post.caption, ingredients: post.ingredients, steps: post.steps, tags: post.tags, saved: post.saved }
+            : p,
+        ),
+      );
+      setEditingPostId(null);
+      setScreen("post");
+      return;
+    }
     setCommunityPosts((prev) => [post, ...prev]);
     setScreen("community");
-  }, [composeCaption, composeDish, composeIngredients, composePhotoUri, composePicks, composeSteps, pantry]);
+  }, [editingPostId, composeCaption, composeDish, composeIngredients, composePhotoUri, composePicks, composeSteps, pantry]);
 
   const pickComposePhoto = useCallback(async () => {
     setComposePhotoError(null);
@@ -667,8 +701,9 @@ export function useScrapsterState() {
         }
       },
       toggleLike: () => toggleLike(selectedPost.id),
+      edit: selectedPost.mine ? () => openEditPost(selectedPost) : undefined,
     };
-  }, [selectedPost, pantry, isRecipeSaved, toggleSavedRecipe, postToSavedRecipe, toggleLike]);
+  }, [selectedPost, pantry, isRecipeSaved, toggleSavedRecipe, postToSavedRecipe, toggleLike, openEditPost]);
 
   const composePickRows = useMemo(
     () =>
@@ -840,6 +875,7 @@ export function useScrapsterState() {
     sendComment,
 
     openCompose,
+    isEditingPost: editingPostId !== null,
     composePhotoUri,
     composePhotoError,
     pickComposePhoto,

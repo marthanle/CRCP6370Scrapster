@@ -189,6 +189,7 @@ export default function App() {
             isSaved={s.selectedPostDetail.isSaved}
             toggleSave={s.selectedPostDetail.toggleSave}
             toggleLike={s.selectedPostDetail.toggleLike}
+            onEdit={s.selectedPostDetail.edit}
             commentDraft={s.commentDraft}
             onCommentDraftChange={s.setCommentDraft}
             onSendComment={s.sendComment}
@@ -197,6 +198,7 @@ export default function App() {
         )}
         {s.screen === "compose" && (
           <ComposeScreen
+            isEditing={s.isEditingPost}
             photoUri={s.composePhotoUri}
             photoError={s.composePhotoError}
             onPickPhoto={s.pickComposePhoto}
@@ -213,7 +215,7 @@ export default function App() {
             savedPreview={s.composeSavedPreview}
             canSubmit={s.canSubmitPost}
             onSubmit={s.submitPost}
-            onCancel={() => s.go("community")}
+            onCancel={() => s.go(s.isEditingPost ? "post" : "community")}
           />
         )}
         {s.screen === "import" && (

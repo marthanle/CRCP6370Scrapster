@@ -3,6 +3,7 @@ import { colors, font, radius } from "../theme";
 import { ComposePickRow } from "../types/pantry";
 
 interface Props {
+  isEditing: boolean;
   ingredients: string;
   onIngredientsChange: (text: string) => void;
   steps: string;
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function ComposeScreen({
+  isEditing,
   ingredients,
   onIngredientsChange,
   steps,
@@ -48,10 +50,10 @@ export default function ComposeScreen({
           <TouchableOpacity onPress={onCancel}>
             <Text style={styles.cancel}>← Cancel</Text>
           </TouchableOpacity>
-          <Text style={styles.headerRight}>New post</Text>
+          <Text style={styles.headerRight}>{isEditing ? "Editing" : "New post"}</Text>
         </View>
 
-        <Text style={styles.title}>Share what you made</Text>
+        <Text style={styles.title}>{isEditing ? "Edit your post" : "Share what you made"}</Text>
         <Text style={styles.subtitle}>Show people what a fridge of odds and ends can turn into.</Text>
 
         {photoUri ? (
@@ -157,7 +159,7 @@ export default function ComposeScreen({
           disabled={!canSubmit}
           style={[styles.submitButton, { opacity: canSubmit ? 1 : 0.45 }]}
         >
-          <Text style={styles.submitButtonText}>Post to community</Text>
+          <Text style={styles.submitButtonText}>{isEditing ? "Save changes" : "Post to community"}</Text>
         </TouchableOpacity>
         {!canSubmit && <Text style={styles.needsNameHint}>Give your dish a name to post it.</Text>}
       </ScrollView>

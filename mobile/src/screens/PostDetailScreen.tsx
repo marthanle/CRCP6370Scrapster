@@ -20,6 +20,7 @@ interface Props {
   isSaved: boolean;
   toggleSave: () => void;
   toggleLike: () => void;
+  onEdit?: () => void;
   commentDraft: string;
   onCommentDraftChange: (text: string) => void;
   onSendComment: () => void;
@@ -38,6 +39,7 @@ export default function PostDetailScreen({
   isSaved,
   toggleSave,
   toggleLike,
+  onEdit,
   commentDraft,
   onCommentDraftChange,
   onSendComment,
@@ -97,6 +99,11 @@ export default function PostDetailScreen({
               <Text style={styles.commentCountText}>{post.comments.length}</Text>
             </View>
             <View style={{ flex: 1 }} />
+            {onEdit && (
+              <TouchableOpacity activeOpacity={0.7} onPress={onEdit} style={[styles.saveBtn, { backgroundColor: colors.neutralChipBg }]}>
+                <Text style={{ fontFamily: font.semibold, fontSize: 13, color: colors.text }}>Edit</Text>
+              </TouchableOpacity>
+            )}
             {hasRecipe && (
               <TouchableOpacity
                 activeOpacity={0.7}
